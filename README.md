@@ -2,11 +2,11 @@
 
 Native Apple clients for the [Silo](https://github.com/Silo-Server/silo-server) self-hosted media server.
 
-This repo builds iOS, tvOS, and the early macOS target. It preserves the existing Apple bundle IDs, keychain groups, and signing IDs for TestFlight and install continuity, but user-facing names, docs, and server references now use Silo.
+This repo builds the iOS, tvOS, and macOS apps. It preserves the existing Apple bundle IDs, keychain groups, and signing IDs for TestFlight and install continuity, but user-facing names, docs, and server references now use Silo.
 
 ## TestFlight
 
-Try the latest beta builds of the iOS and tvOS apps:
+Try the latest beta builds of the iOS, tvOS, and macOS apps:
 
 **[Join the Silo TestFlight beta](https://testflight.apple.com/join/XZy8cu5q)**
 
@@ -36,7 +36,7 @@ Try the latest beta builds of the iOS and tvOS apps:
 - `iosApp/Resources/` - shared Apple resources
 - `iosApp/Signing/` - checked-in signing defaults plus local override sample
 - `iosApp/project.yml` - XcodeGen project source of truth
-- `fastlane/` - iOS/tvOS release automation
+- `fastlane/` - iOS, tvOS, and macOS release automation
 - `docs/tvos-player/` - Apple TV playback notes
 
 ## Prerequisites
@@ -128,7 +128,7 @@ Personal Apple Developer teams cannot join the production App Group, so Top Shel
 
 ## Release Flow
 
-Fastlane lanes are defined in `fastlane/Fastfile`. All Apple IDs, team IDs, signing repo URLs, and App Store Connect credentials must come from CI environment variables.
+Fastlane lanes are defined in `fastlane/Fastfile`, and [docs/release/ci-release.md](docs/release/ci-release.md) covers TestFlight and App Store releases. All Apple IDs, team IDs, signing repo URLs, and App Store Connect credentials must come from CI environment variables.
 
 ## Contributing
 
