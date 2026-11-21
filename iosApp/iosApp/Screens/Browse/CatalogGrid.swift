@@ -267,7 +267,7 @@ struct CatalogGridCard: View {
                 action: { onItemTap(item) },
                 playAction: playAction,
                 contentId: item.contentId,
-                seriesContext: SeriesDetailContext(item: SectionItem(browseItem: item)),
+                seriesContext: SeriesDetailContext(browseItem: item),
                 detailSeedSource: .browse(item),
                 aspect: item.isAudiobook ? .square : .poster,
                 cardWidthOverride: widthOverride,

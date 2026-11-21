@@ -13,9 +13,23 @@ struct SeriesDetailContext: Hashable {
     }
 
     init?(item: SectionItem) {
-        guard item.type.lowercased() == "episode" || item.episodeNumber != nil,
-              let seriesId = Self.parentID(item.seriesId, childID: item.contentId) else { return nil }
-        self.init(seriesContentId: seriesId, episodeContentId: item.contentId, seasonNumber: item.seasonNumber)
+        self.init(
+            type: item.type, episodeNumber: item.episodeNumber, seriesId: item.seriesId,
+            contentId: item.contentId, seasonNumber: item.seasonNumber
+        )
+    }
+
+    init?(browseItem item: BrowseItem) {
+        self.init(
+            type: item.type, episodeNumber: item.episodeNumber, seriesId: item.seriesId,
+            contentId: item.contentId, seasonNumber: item.seasonNumber
+        )
+    }
+
+    private init?(type: String, episodeNumber: Int?, seriesId: String?, contentId: String, seasonNumber: Int?) {
+        guard type.lowercased() == "episode" || episodeNumber != nil,
+              let seriesId = Self.parentID(seriesId, childID: contentId) else { return nil }
+        self.init(seriesContentId: seriesId, episodeContentId: contentId, seasonNumber: seasonNumber)
     }
 
     init?(detail: ItemDetail) {
