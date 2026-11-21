@@ -531,7 +531,7 @@ private struct ItemDetailPhoneContent: View {
     /// Keeps the playback selector's footprint occupied while a newly focused
     /// episode is resolving its files and tracks. The series page renders a
     /// same-size skeleton from this state instead of collapsing the stack.
-    @State private var isLoadingNextUpWatchDetail = false
+    @State private var isLoadingNextUpWatchDetail: Bool
     /// Series pages select episodes in place. Nil means the normal next-up
     /// episode is active; tapping a card pins that episode without pushing a
     /// second detail route.
