@@ -38,7 +38,8 @@ struct EpisodeThumbCard: View {
     @Environment(\.browseLibraryId) private var browseLibraryId
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @State private var personalState = MediaCardPersonalState()
+    @State private var personalStateSlot = LazyModel<MediaCardPersonalState>()
+    private var personalState: MediaCardPersonalState { personalStateSlot.value { MediaCardPersonalState() } }
     @State private var zoomSourceID = UUID()
     @EnvironmentObject private var overlayStore: OverlayPrefsStore
     #if os(tvOS)
