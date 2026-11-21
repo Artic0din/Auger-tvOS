@@ -2038,7 +2038,7 @@ private struct ChaptersPane: View {
         PaneColumn(.optionsChapters) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 2) {
-                    ForEach(Array(viewModel.chapters.enumerated()), id: \.element.id) { index, chapter in
+                    ForEach(Array(viewModel.chapters.enumerated()), id: \.element.rowIdentity) { index, chapter in
                         HUDChapterRow(
                             number: index + 1,
                             title: chapter.title ?? AppLanguage.string(.optionsChapterNumbered(LocaleFormat.integer(index + 1, locale: locale)), locale: locale),
@@ -2057,6 +2057,18 @@ private struct ChaptersPane: View {
             CurrentChapterIndexReader(viewModel: viewModel, index: $currentIndex)
         }
     }
+}
+
+private extension PlayerChapterInfo {
+    /// Server and file chapters number themselves independently, and a
+    /// server can repeat a number, so a row is the same chapter only when
+    /// its number and start both match.
+    struct RowIdentity: Hashable {
+        let index: Int
+        let time: Double
+    }
+
+    var rowIdentity: RowIdentity { RowIdentity(index: index, time: time) }
 }
 
 /// Non-focusable reader that observes `currentTime` in its own body and
