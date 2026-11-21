@@ -145,20 +145,14 @@ enum AppLanguage {
     static func string(_ resource: LocalizedStringResource, locale: Locale) -> String {
         var resource = resource
         resource.locale = locale
-        #if os(tvOS)
-        return String(localized: resource)
-        #else
         return resolvedStrings.value(for: resource) { String(localized: $0) }
-        #endif
     }
 
-    #if !os(tvOS)
     /// `String(localized:)` reads the string table from disk again on every
     /// call that names a locale, and a detail page resolves a few dozen
     /// labels in the frame that opens it. A resource always resolves to the
     /// same text, so each is resolved once.
     static let resolvedStrings = ResolvedStringCache()
-    #endif
 
     /// Wraps a title or name in first-strong isolates (FSI…PDI) when the
     /// interface reads right to left, so text of the other direction keeps
@@ -226,7 +220,6 @@ enum AppLanguage {
     }
 }
 
-#if !os(tvOS)
 /// Strings `AppLanguage.string(_:locale:)` has resolved, by resource: its
 /// key, arguments, table, bundle and locale. Safe to use from any thread.
 final class ResolvedStringCache: @unchecked Sendable {
@@ -263,7 +256,6 @@ final class ResolvedStringCache: @unchecked Sendable {
         return value
     }
 }
-#endif
 
 extension LocalizedStringResource {
     /// Text shown as is where an API takes catalog text: a name, a number, a

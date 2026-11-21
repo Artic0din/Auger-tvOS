@@ -89,7 +89,6 @@ final class AppLanguageMatchingTests: XCTestCase {
     }
 }
 
-#if !os(tvOS)
 final class ResolvedStringCacheTests: XCTestCase {
     /// Each resource resolves once; another argument or locale is another
     /// resource, never an earlier one's text.
@@ -135,7 +134,6 @@ final class ResolvedStringCacheTests: XCTestCase {
         XCTAssertEqual(resolutions, 4)
     }
 }
-#endif
 
 final class AppLanguageReconcilerTests: XCTestCase {
     private typealias R = AppLanguageReconciler
