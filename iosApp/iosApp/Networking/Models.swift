@@ -610,7 +610,7 @@ private struct LossyElement<Element: Decodable>: Decodable {
     }
 }
 
-struct ResolvedSection: Codable, Identifiable {
+struct ResolvedSection: Codable, Identifiable, Equatable {
     /// A row whose cards are collections rather than titles.
     static let collectionPostersType = "collection_posters"
 
