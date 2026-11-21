@@ -134,7 +134,8 @@ struct MediaCard: View {
     /// shows this card in its box set row.
     var marksCurrentFilm = false
 
-    @State private var personalState = MediaCardPersonalState()
+    @State private var personalStateSlot = LazyModel<MediaCardPersonalState>()
+    private var personalState: MediaCardPersonalState { personalStateSlot.value { MediaCardPersonalState() } }
     @EnvironmentObject private var overlayStore: OverlayPrefsStore
     #if !os(tvOS)
     @Environment(AppRouter.self) private var router

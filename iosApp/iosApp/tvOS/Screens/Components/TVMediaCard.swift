@@ -61,7 +61,8 @@ struct TVMediaCard: View {
     }
 
     @FocusState private var isFocused: Bool
-    @State private var personalState = MediaCardPersonalState()
+    @State private var personalStateSlot = LazyModel<MediaCardPersonalState>()
+    private var personalState: MediaCardPersonalState { personalStateSlot.value { MediaCardPersonalState() } }
     @EnvironmentObject private var overlayStore: OverlayPrefsStore
 
     private static let captionSpacing: CGFloat = 16

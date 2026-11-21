@@ -333,7 +333,8 @@ struct HomePosterCard: View {
     @Environment(\.locale) private var locale
     /// Optimistic personal state, shared with the menu so the badge flips the
     /// moment "Mark as Watched" is tapped rather than after the Home refresh.
-    @State private var personalState = MediaCardPersonalState()
+    @State private var personalStateSlot = LazyModel<MediaCardPersonalState>()
+    private var personalState: MediaCardPersonalState { personalStateSlot.value { MediaCardPersonalState() } }
 
     private var isPlayed: Bool { personalState.isPlayed(item.userState) }
 
@@ -483,7 +484,8 @@ struct HomeStillCard: View {
     var onTap: (() -> Void)? = nil
 
     /// Optimistic personal state, shared with the menu — see `HomePosterCard`.
-    @State private var personalState = MediaCardPersonalState()
+    @State private var personalStateSlot = LazyModel<MediaCardPersonalState>()
+    private var personalState: MediaCardPersonalState { personalStateSlot.value { MediaCardPersonalState() } }
     @EnvironmentObject private var overlayStore: OverlayPrefsStore
     @Environment(\.browseLibraryId) private var playbackLibraryId
     @Environment(AppRouter.self) private var router
