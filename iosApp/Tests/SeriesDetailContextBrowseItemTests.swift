@@ -2,36 +2,26 @@ import Foundation
 import XCTest
 @testable import Silo
 
-/// A catalog item resolves the same series context directly as it does
-/// through the Home section item it used to be converted to.
+/// A catalog item resolves its series context directly, by the same rule
+/// the Home section item applies.
 final class SeriesDetailContextBrowseItemTests: XCTestCase {
-    func testBrowseItemMatchesSectionItemConversion() throws {
-        let cases: [(String, [String: Any])] = [
-            ("movie", ["type": "movie"]),
-            ("series", ["type": "series"]),
-            ("episode", ["type": "episode", "seriesId": "series-1", "seasonNumber": 2, "episodeNumber": 3]),
-            ("upper-case episode", ["type": "Episode", "seriesId": "series-1"]),
-            ("blank series id", ["type": "episode", "seriesId": "  "]),
-            ("own series id", ["type": "episode", "seriesId": "item-1"]),
-            ("episode number on another type", ["type": "movie", "seriesId": "series-1", "episodeNumber": 1]),
+    func testBrowseItemResolvesOnlyEpisodesWithAParentSeries() throws {
+        let episode = SeriesDetailContext(seriesContentId: "series-1", episodeContentId: "item-1", seasonNumber: 2)
+        let cases: [(String, [String: Any], SeriesDetailContext?)] = [
+            ("movie", ["type": "movie"], nil),
+            ("series", ["type": "series", "seriesId": "series-1"], nil),
+            ("episode", ["type": "episode", "seriesId": "series-1", "seasonNumber": 2, "episodeNumber": 3], episode),
+            ("upper-case type", ["type": "Episode", "seriesId": "series-1", "seasonNumber": 2], episode),
+            ("trimmed series id", ["type": "episode", "seriesId": " series-1 ", "seasonNumber": 2], episode),
+            ("episode number on another type", ["type": "special", "seriesId": "series-1", "seasonNumber": 2, "episodeNumber": 1], episode),
+            ("blank series id", ["type": "episode", "seriesId": "  "], nil),
+            ("own series id", ["type": "episode", "seriesId": "item-1"], nil),
         ]
-        for (name, fields) in cases {
+        for (name, fields, expected) in cases {
             let item = try browseItem(fields)
-            XCTAssertEqual(
-                SeriesDetailContext(browseItem: item),
-                SeriesDetailContext(item: SectionItem(browseItem: item)),
-                name
-            )
+            XCTAssertEqual(SeriesDetailContext(browseItem: item), expected, name)
+            XCTAssertEqual(SeriesDetailContext(item: SectionItem(browseItem: item)), expected, name)
         }
-    }
-
-    func testEpisodeResolvesItsSeriesSeasonAndEpisode() throws {
-        let item = try browseItem(["type": "episode", "seriesId": " series-1 ", "seasonNumber": 2])
-
-        XCTAssertEqual(
-            SeriesDetailContext(browseItem: item),
-            SeriesDetailContext(seriesContentId: "series-1", episodeContentId: "item-1", seasonNumber: 2)
-        )
     }
 
     private func browseItem(_ fields: [String: Any]) throws -> BrowseItem {
