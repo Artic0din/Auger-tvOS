@@ -35,7 +35,7 @@ struct TVLibraryGridView: View {
     let onTopMenuFocusRequest: (() -> Void)?
 
     @State private var modelSlot = LazyModel<TVLibraryGridViewModel>()
-    @State private var selectedPrefix: String? = nil
+    @State private var selectedPrefix: String?
     @State private var openPanel: TVBrowsePanel? = nil
     @State private var controlFocusRequest = 0
     @State private var gridFocusRequest = 0
