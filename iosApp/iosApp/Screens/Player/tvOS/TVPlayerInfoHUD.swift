@@ -2038,7 +2038,7 @@ private struct ChaptersPane: View {
         PaneColumn(.optionsChapters) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 2) {
-                    ForEach(Array(viewModel.chapters.enumerated()), id: \.offset) { index, chapter in
+                    ForEach(Array(viewModel.chapters.enumerated()), id: \.element.id) { index, chapter in
                         HUDChapterRow(
                             number: index + 1,
                             title: chapter.title ?? AppLanguage.string(.optionsChapterNumbered(LocaleFormat.integer(index + 1, locale: locale)), locale: locale),
