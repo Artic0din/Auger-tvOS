@@ -23,8 +23,20 @@ struct HomeFeedRow: View {
     }
 
     private var isResume: Bool { HomeFeed.isResume(section) }
-    private var usesStills: Bool { Self.usesStills(section) }
-    private var isAudiobookRow: Bool { Self.isAudiobookRow(section) }
+
+    /// A row's card shape, worked out once per row rather than once per
+    /// card: each flag scans the row's items.
+    struct CardStyle {
+        let usesStills: Bool
+        let isAudiobookRow: Bool
+        let isResume: Bool
+
+        init(_ section: ResolvedSection) {
+            usesStills = HomeFeedRow.usesStills(section)
+            isAudiobookRow = HomeFeedRow.isAudiobookRow(section)
+            isResume = HomeFeed.isResume(section)
+        }
+    }
 
     /// Resume rows render as 16:9 stills — showing where you are inside a
     /// runtime is the entire job of the row, and a 2:3 poster can't do it.
@@ -54,13 +66,18 @@ struct HomeFeedRow: View {
 
     /// The artwork a card in `section`'s row draws, and its size.
     static func cardArtwork(for item: SectionItem, in section: ResolvedSection) -> CardArtwork? {
-        if usesStills(section) {
+        cardArtwork(for: item, style: CardStyle(section))
+    }
+
+    /// The artwork a card draws in a row of `style`.
+    static func cardArtwork(for item: SectionItem, style: CardStyle) -> CardArtwork? {
+        if style.usesStills {
             return CardArtwork(url: HomeStillCard.art(for: item).url, pointSize: HomeStillCard.artworkSize(width: stillWidth))
         }
         guard let url = item.posterUrl else { return nil }
         return CardArtwork(
             url: url,
-            pointSize: HomePosterCard.artworkSize(width: posterWidth, aspect: isAudiobookRow(section) ? .square : .poster)
+            pointSize: HomePosterCard.artworkSize(width: posterWidth, aspect: style.isAudiobookRow ? .square : .poster)
         )
     }
 
@@ -111,15 +128,16 @@ struct HomeFeedRow: View {
     }
 
     private var cardsScroll: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        let style = CardStyle(section)
+        return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(alignment: HorizontalMediaRailLayout.cardAlignment, spacing: HomeFeedMetrics.cardSpacing) {
                 ForEach(section.items) { item in
                     Group {
-                        if usesStills {
+                        if style.usesStills {
                             HomeStillCard(
                                 item: item,
                                 width: Self.stillWidth,
-                                opensResumeContext: isResume,
+                                opensResumeContext: style.isResume,
                                 onRemoveFromContinueWatching: removalAction(for: item),
                                 onSetWatched: watchedAction(for: item)
                             )
@@ -127,9 +145,9 @@ struct HomeFeedRow: View {
                             HomePosterCard(
                                 item: item,
                                 width: Self.posterWidth,
-                                showsProgress: isResume,
-                                opensResumeContext: isResume,
-                                aspect: isAudiobookRow ? .square : .poster,
+                                showsProgress: style.isResume,
+                                opensResumeContext: style.isResume,
+                                aspect: style.isAudiobookRow ? .square : .poster,
                                 episodeAccessibilityLabel: episodeAccessibilityLabel(for: item),
                                 onRemoveFromContinueWatching: removalAction(for: item),
                                 onSetWatched: watchedAction(for: item)
@@ -145,10 +163,10 @@ struct HomeFeedRow: View {
                 }
                 if let exploreAll, !section.items.isEmpty {
                     SectionExploreAllCard(
-                        size: usesStills
+                        size: style.usesStills
                             ? HomeStillCard.artworkSize(width: Self.stillWidth)
-                            : HomePosterCard.artworkSize(width: Self.posterWidth, aspect: isAudiobookRow ? .square : .poster),
-                        cornerRadius: usesStills ? HomeFeedMetrics.stillRadius : HomeFeedMetrics.posterRadius,
+                            : HomePosterCard.artworkSize(width: Self.posterWidth, aspect: style.isAudiobookRow ? .square : .poster),
+                        cornerRadius: style.usesStills ? HomeFeedMetrics.stillRadius : HomeFeedMetrics.posterRadius,
                         rowTitle: section.displayTitle(in: locale),
                         action: exploreAll
                     )
@@ -165,7 +183,8 @@ struct HomeFeedRow: View {
     /// Decode the next cards before a swipe brings them into view.
     private func warmCards(after item: SectionItem) {
         guard let index = section.items.firstIndex(where: { $0.id == item.id }) else { return }
-        ArtworkLookahead.warmCards(after: index, in: section.items) { Self.cardArtwork(for: $0, in: section) }
+        let style = CardStyle(section)
+        ArtworkLookahead.warmCards(after: index, in: section.items) { Self.cardArtwork(for: $0, style: style) }
     }
 
     /// The page this row's card opens, as `HomeCardTap` opens it.
