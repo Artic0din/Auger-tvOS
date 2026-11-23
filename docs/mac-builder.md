@@ -232,7 +232,7 @@ Working directly on a Mac, `scripts/apple-test.sh` does the whole test loop:
 ```bash
 scripts/apple-test.sh Silo                                  # every iOS test
 scripts/apple-test.sh SiloTV TVLibraryGridViewModelTests    # one tvOS class
-scripts/apple-test.sh SiloMac                               # compile-only Mac build
+scripts/apple-test.sh SiloMac                               # compile-only Mac build, no classes
 ```
 
 It runs `xcodegen generate` first, so a branch switch or a new test file never runs against a
@@ -242,9 +242,9 @@ their expected dates assume, and fails any test that runs longer than 60 seconds
 (`SILO_TEST_TIMEOUT`) instead of letting it hang. `SILO_SKIP_TESTS` takes space-separated
 `Class` or `Class/testMethod` entries to skip.
 
-Simulator test builds are signed locally, which needs no developer account. Building tests
-with `CODE_SIGNING_ALLOWED=NO` strips the Keychain entitlement, and every Keychain-backed test
-then fails with `keychain_read_failed(status=-34018)`.
+It signs simulator test builds locally, for the Keychain reason in
+[Simulator — the default loop](#simulator--the-default-loop); an unsigned test build fails every
+Keychain-backed test with `keychain_read_failed(status=-34018)`.
 
 ### Compile-only check without signing
 
