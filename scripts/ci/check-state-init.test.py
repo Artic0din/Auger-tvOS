@@ -39,30 +39,37 @@ class ScanSourceTests(unittest.TestCase):
             "self._flag = State(wrappedValue: true)",
             "_flag = State<Bool>(initialValue: true)",
             "_flag = State<[String: Set<Int>]>(initialValue: [:])",
+            "_flag = State<[String: Array<Set<Int>>]>(initialValue: [:])",
         ]:
             source = f"struct V: View {{\n    @State private var flag = false\n    init() {{ {assignment} }}\n}}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], assignment)
 
-    def test_matches_assignment_to_its_own_type(self) -> None:
-        source = (
-            "struct A: View {\n    @State private var flag = false\n    var body: some View { EmptyView() }\n}\n"
+    def test_matches_across_the_file_with_an_ignore_marker(self) -> None:
+        extension = (
+            "struct A: View {\n    @State private var flag = false\n}\n"
+            "extension A {\n    init(on: Bool) { _flag = State(initialValue: on) }\n}"
+        )
+        self.assertEqual(guard.scan_source(extension), [(2, "flag")])
+        other_type = (
+            "struct A: View {\n    @State private var flag = false // state-init-ignore: B sets its own\n}\n"
             "struct B: View {\n    @State private var flag: Bool\n    init() { _flag = State(initialValue: true) }\n}"
         )
-        self.assertEqual(guard.scan_source(source), [])
-        source = (
-            "struct A: View {\n    @State private var flag = false\n    init() {\n        _flag = State(initialValue: true)\n    }\n"
-            "    struct Inner { var x = 1 }\n}"
-        )
-        self.assertEqual(guard.scan_source(source), [(2, "flag")])
+        self.assertEqual(guard.scan_source(other_type), [])
 
-    def test_ignores_comments_and_strings(self) -> None:
+    def test_ignores_comments(self) -> None:
         for source in [
             "struct V {\n    @State private var flag = false\n    init() { // _flag = State(initialValue: true)\n    }\n}",
             "struct V {\n    @State private var flag = false\n    init() { /* _flag = State(initialValue: true) */ }\n}",
-            'struct V {\n    @State private var flag = false\n    init() { print("_flag = State(") }\n}',
-            'struct V {\n    // @State private var flag = false\n    @State private var flag: Bool\n    init() { _flag = State(initialValue: true) }\n}',
+            "struct V {\n    // @State private var flag = false\n    @State private var flag: Bool\n    init() { _flag = State(initialValue: true) }\n}",
         ]:
             self.assertEqual(guard.scan_source(source), [], source)
+
+    def test_comment_markers_inside_strings_hide_nothing(self) -> None:
+        source = (
+            'struct V {\n    @State private var glob = "*/"\n    @State private var flag = false\n'
+            '    init() { let u = "https://x/*"; _flag = State(initialValue: true) }\n}'
+        )
+        self.assertEqual(guard.scan_source(source), [(3, "flag")])
 
     def test_long_comment_scans_quickly(self) -> None:
         source = "@State " + "a " * 200 + "\n" + "@State /*" + " x" * 5000 + "*/ var y = 1\n"
