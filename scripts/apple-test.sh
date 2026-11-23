@@ -29,6 +29,11 @@ case "$scheme" in
   *) echo "usage: scripts/apple-test.sh <Silo|SiloTV|SiloMac> [TestClass ...]" >&2; exit 2 ;;
 esac
 
+if [[ "$scheme" == SiloMac && $# -gt 0 ]]; then
+  echo "apple-test: SiloMac is a compile-only build and takes no test classes" >&2
+  exit 2
+fi
+
 cd "$root/iosApp"
 xcodegen generate --quiet
 
@@ -37,7 +42,6 @@ args=(-project Silo.xcodeproj -scheme "$scheme" -derivedDataPath "$derived")
 
 if [[ "$scheme" == SiloMac ]]; then
   # SiloMac has no test bundle, so a compile-only build is the check.
-  [[ $# -eq 0 ]] || { echo "apple-test: SiloMac is a compile-only build and takes no test classes" >&2; exit 2; }
   exec xcodebuild build "${args[@]}" -destination "platform=macOS" CODE_SIGNING_ALLOWED=NO
 fi
 
