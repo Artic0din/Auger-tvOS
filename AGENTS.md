@@ -89,6 +89,8 @@ Avoid tests that only mirror wording or implementation. Run relevant checks whil
 iterating and complete repository-required gates at their stated milestone.
 Broaden or repeat testing only for new changes, failures, or unresolved risks.
 
+Reviewing a diff: apply every rule in `CODING_STANDARDS.md`.
+
 ## Writing
 
 Run a final readability pass on every human-facing issue, pull request,
