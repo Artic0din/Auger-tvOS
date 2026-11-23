@@ -43,6 +43,8 @@ class ScanSourceTests(unittest.TestCase):
             "_flag = State<[String: Set<Int>]>(initialValue: [:])",
             "_flag = State<[String: Array<Set<Int>>]>(initialValue: [:])",
             "self._flag = .init(initialValue: true)",
+            "_flag = .init(wrappedValue: true)",
+            "_flag = .init()",
         ]:
             source = f"struct V: View {{\n    @State private var flag = false\n    init() {{ {assignment} }}\n}}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], assignment)
@@ -130,6 +132,7 @@ class ScanSourceTests(unittest.TestCase):
             "@State private var flag = false",
             "@State private var flag: Bool { true }\ninit() { _flag = State(initialValue: true) }",
             "@State private var flag = false\nfunc f() { let _flag = State(initialValue: true) }",
+            "@State private var flag = false\ninit(input: Bool) { let _flag: Set<Bool>\n _flag = .init([input]) }",
             "@State private var flag: [\n    String: Bool\n]\ninit() { _flag = State(initialValue: [:]) }",
             "@Binding var flag: Bool\nvar other = 1\ninit() { _flag = State(initialValue: true) }",
         ]:

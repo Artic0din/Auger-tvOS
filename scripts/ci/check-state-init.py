@@ -22,11 +22,12 @@ SCAN_DIRS = ["iosApp/iosApp", "iosApp/TopShelf", "iosApp/NotificationService", "
 
 IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 
-# `_name = State(...)`, `State<T>(...)` or the contextual `.init(...)`; a local
+# `_name = State(...)`, `State<T>(...)`, or State's own contextual
+# `.init(initialValue:)`, `.init(wrappedValue:)` and `.init()`; a local
 # `let _name = ...` declares a new value and is not the property's storage.
 INIT_ASSIGNMENT = re.compile(
     r"(?<![\w.])(?<!let )(?<!var )(?:self\s*\.\s*)?_(\w+)\s*=\s*"
-    r"(?:State\s*(?:<[^\n]*?>)?|\.\s*init)\s*\("
+    r"(?:State\s*(?:<[^\n]*?>)?\s*\(|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
 )
 
 # `@State`, then attributes and modifiers, then `var name`. Each repeated token
@@ -58,8 +59,10 @@ def has_default(code: str, i: int) -> bool:
         elif depth <= 0 and ch in "{;":
             return False
         elif depth <= 0 and ch == "\n":
-            rest = code[i + 1 :].lstrip(" \t")
-            return rest.startswith("=") and not rest.startswith("==")
+            j = i + 1
+            while j < n and code[j] in " \t":
+                j += 1
+            return code.startswith("=", j) and not code.startswith("==", j)
         i += 1
     return False
 
