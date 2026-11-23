@@ -87,8 +87,10 @@ class _Lexer:
                     i = self.string(i, hashes)
                 elif hashes and i + hashes < n and src[i + hashes] == "/":
                     # Extended regex literal `#/.../#`: no comments or code inside.
-                    close = src.find("/" + "#" * hashes, i + hashes + 1)
-                    end = n if close == -1 else close + 1 + hashes
+                    close, j = "/" + "#" * hashes, i + hashes + 1
+                    while j < n and not src.startswith(close, j):
+                        j += 2 if src[j] == "\\" else 1
+                    end = min(j + len(close), n)
                     self.blank(i, end)
                     i = end
                 else:

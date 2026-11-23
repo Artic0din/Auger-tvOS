@@ -82,7 +82,8 @@ class ScanSourceTests(unittest.TestCase):
             '    let a = #"""x"#\n',
             '    let a = ##"""x"##\n',
             '    let a = #/[/][*] /*/#\n',
-            '    let a = #/ // state-init-ignore: no /#\n',
+            '    let a = #/a\\/#[/][*] /*/#\n',
+            '    let a = ##/a\\/##[/][*] /*/##\n',
         ]:
             source = "struct V {\n" + before + decl + assign + "}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], before)
@@ -90,7 +91,7 @@ class ScanSourceTests(unittest.TestCase):
         self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"])
 
     def test_assignment_text_inside_a_string_is_not_an_assignment(self) -> None:
-        for literal in ['"_flag = State("', '"""\n_flag = State(\n"""', '#"_flag = State("#']:
+        for literal in ['"_flag = State("', '"""\n_flag = State(\n"""', '#"_flag = State("#', '#/a\\/#_flag = State(true)/#']:
             source = f"struct V {{\n    @State private var flag = false\n    let s = {literal}\n}}"
             self.assertEqual(guard.scan_source(source), [], literal)
 
@@ -103,6 +104,8 @@ class ScanSourceTests(unittest.TestCase):
         ]:
             source = "struct V {\n    " + declaration + assign
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], declaration)
+        source = "struct V {\n    @State private var flag = #/ // state-init-ignore: no /# != nil" + assign
+        self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], "marker inside a regex")
         source = "struct V {\n    @State private var flag = false // state-init-ignore: B owns it" + assign
         self.assertEqual(guard.scan_source(source), [])
 
