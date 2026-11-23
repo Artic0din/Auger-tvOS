@@ -39,10 +39,10 @@ jobs:
 
       - name: Select the newest Xcode 27
         run: |
-          xcode=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1)
-          if [ -z "$xcode" ]; then
+          xcode=$(printf '%s\n' /Applications/Xcode_27*.app | sort -V | tail -1)
+          if [ ! -d "$xcode" ]; then
             echo "::error::No Xcode 27 on this runner image."
-            ls -d /Applications/Xcode*.app
+            printf '%s\n' /Applications/Xcode*.app
             exit 1
           fi
           sudo xcode-select -s "$xcode"
