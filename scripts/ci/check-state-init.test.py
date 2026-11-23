@@ -7,6 +7,7 @@ import importlib.util
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -24,9 +25,50 @@ class ScanSourceTests(unittest.TestCase):
             "@State private(set) var flag: Bool? = nil",
             "@State\n    private var flag: Bool = false",
             "@MainActor @State private var flag: [String: Int] = [:]",
+            "@State private var flag: Bool\n        = false",
+            "@State @available(iOS 18, *) private var flag = false",
+            "@State // seeded in init\n    private var flag = false",
+            "@State /* note */ private var flag = false",
         ]:
             source = f"struct V: View {{\n    {declaration}\n    init() {{ _flag = State(initialValue: true) }}\n}}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], declaration)
+
+    def test_flags_each_assignment_form(self) -> None:
+        for assignment in [
+            "_flag = State(initialValue: true)",
+            "self._flag = State(wrappedValue: true)",
+            "_flag = State<Bool>(initialValue: true)",
+            "_flag = State<[String: Set<Int>]>(initialValue: [:])",
+        ]:
+            source = f"struct V: View {{\n    @State private var flag = false\n    init() {{ {assignment} }}\n}}"
+            self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], assignment)
+
+    def test_matches_assignment_to_its_own_type(self) -> None:
+        source = (
+            "struct A: View {\n    @State private var flag = false\n    var body: some View { EmptyView() }\n}\n"
+            "struct B: View {\n    @State private var flag: Bool\n    init() { _flag = State(initialValue: true) }\n}"
+        )
+        self.assertEqual(guard.scan_source(source), [])
+        source = (
+            "struct A: View {\n    @State private var flag = false\n    init() {\n        _flag = State(initialValue: true)\n    }\n"
+            "    struct Inner { var x = 1 }\n}"
+        )
+        self.assertEqual(guard.scan_source(source), [(2, "flag")])
+
+    def test_ignores_comments_and_strings(self) -> None:
+        for source in [
+            "struct V {\n    @State private var flag = false\n    init() { // _flag = State(initialValue: true)\n    }\n}",
+            "struct V {\n    @State private var flag = false\n    init() { /* _flag = State(initialValue: true) */ }\n}",
+            'struct V {\n    @State private var flag = false\n    init() { print("_flag = State(") }\n}',
+            'struct V {\n    // @State private var flag = false\n    @State private var flag: Bool\n    init() { _flag = State(initialValue: true) }\n}',
+        ]:
+            self.assertEqual(guard.scan_source(source), [], source)
+
+    def test_long_comment_scans_quickly(self) -> None:
+        source = "@State " + "a " * 200 + "\n" + "@State /*" + " x" * 5000 + "*/ var y = 1\n"
+        start = time.monotonic()
+        guard.scan_source(source)
+        self.assertLess(time.monotonic() - start, 1.0)
 
     def test_reports_the_declaration_line(self) -> None:
         source = "struct V {\n\n    @State private var flag = false\n    init() { _flag = State(initialValue: true) }\n}"
