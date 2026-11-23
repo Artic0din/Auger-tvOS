@@ -20,7 +20,7 @@ from pathlib import Path
 
 SCAN_DIRS = ["iosApp/iosApp", "iosApp/TopShelf", "iosApp/NotificationService", "iosApp/DownloadsActivity"]
 
-IGNORE = "state-init-ignore"
+IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 
 INIT_ASSIGNMENT = re.compile(r"(?<![\w.])(?:self\s*\.\s*)?_(\w+)\s*=\s*State\s*(?:<[^\n]*?>)?\s*\(")
 
@@ -33,55 +33,107 @@ DEFAULTED_STATE = re.compile(
     r"@State\b(?:\([^()]*\))?\s+(?:" + _MODIFIER + r"(?:\(\w+\))?\s+)*var\s+(\w+)\b[^=\n{]*(?:\n[ \t]*)?=(?!=)"
 )
 
-def strip_comments(source: str) -> str:
-    """Blanks `//` and nested `/* */` comments outside strings, keeping every offset."""
-    out = list(source)
-    i, n = 0, len(source)
+class _Lexer:
+    """Blanks comments and string-literal text, keeping every newline and offset.
 
-    def blank(start: int, end: int) -> None:
-        for k in range(start, end):
-            if out[k] != "\n":
-                out[k] = " "
+    Handles `//` and nested `/* */` comments, one-line, multiline and raw
+    (`#"..."#`) strings, and code inside `\\(...)` interpolation, which may
+    hold strings of its own. Records each `//` comment by line for the ignore
+    marker.
+    """
 
-    while i < n:
-        if source.startswith("//", i):
-            end = source.find("\n", i)
-            end = n if end == -1 else end
-            blank(i, end)
-            i = end
-        elif source.startswith("/*", i):
-            depth, j = 1, i + 2
-            while j < n and depth:
-                if source.startswith("/*", j):
-                    depth, j = depth + 1, j + 2
-                elif source.startswith("*/", j):
-                    depth, j = depth - 1, j + 2
+    def __init__(self, source: str) -> None:
+        self.src = source
+        self.out = list(source)
+        self.n = len(source)
+        self.line_comments: dict[int, list[str]] = {}
+
+    def blank(self, start: int, end: int) -> None:
+        for k in range(start, min(end, self.n)):
+            if self.out[k] != "\n":
+                self.out[k] = " "
+
+    def code(self, i: int, in_interpolation: bool = False) -> int:
+        """Lexes code from `i`; inside interpolation, returns just past the closing `)`."""
+        src, n, depth = self.src, self.n, 0
+        while i < n:
+            if src.startswith("//", i):
+                end = src.find("\n", i)
+                end = n if end == -1 else end
+                line = src.count("\n", 0, i) + 1
+                self.line_comments.setdefault(line, []).append(src[i:end])
+                self.blank(i, end)
+                i = end
+            elif src.startswith("/*", i):
+                nest, j = 1, i + 2
+                while j < n and nest:
+                    if src.startswith("/*", j):
+                        nest, j = nest + 1, j + 2
+                    elif src.startswith("*/", j):
+                        nest, j = nest - 1, j + 2
+                    else:
+                        j += 1
+                self.blank(i, j)
+                i = j
+            elif src[i] in '#"':
+                hashes = 0
+                while i + hashes < n and src[i + hashes] == "#":
+                    hashes += 1
+                if i + hashes < n and src[i + hashes] == '"':
+                    i = self.string(i, hashes)
                 else:
-                    j += 1
-            blank(i, j)
-            i = j
-        elif source[i] == '"':
-            # Step over a one-line string so a `//` or `/*` inside it is not
-            # read as a comment.
-            j = i + 1
-            while j < n and source[j] not in '"\n':
-                j += 2 if source[j] == "\\" else 1
-            i = j + 1
-        else:
-            i += 1
-    return "".join(out)
+                    i += max(hashes, 1)
+            elif in_interpolation and src[i] == "(":
+                depth, i = depth + 1, i + 1
+            elif in_interpolation and src[i] == ")":
+                if depth == 0:
+                    return i + 1
+                depth, i = depth - 1, i + 1
+            else:
+                i += 1
+        return i
+
+    def string(self, start: int, hashes: int) -> int:
+        """Blanks the literal opening at `start`; returns the offset just past it."""
+        src, n = self.src, self.n
+        quote = start + hashes
+        multiline = src.startswith('"""', quote)
+        close = ('"""' if multiline else '"') + "#" * hashes
+        escape = "\\" + "#" * hashes
+        i = quote + (3 if multiline else 1)
+        segment = start
+        while i < n:
+            if src.startswith(close, i):
+                i += len(close)
+                break
+            if not multiline and src[i] == "\n":
+                break
+            if src.startswith(escape + "(", i):
+                self.blank(segment, i)
+                i = self.code(i + len(escape) + 1, in_interpolation=True)
+                segment = i
+                continue
+            i += len(escape) + 1 if src.startswith(escape, i) else 1
+        self.blank(segment, i)
+        return i
+
+
+def strip_comments_and_strings(source: str) -> tuple[str, dict[int, list[str]]]:
+    lexer = _Lexer(source)
+    lexer.code(0)
+    return "".join(lexer.out), lexer.line_comments
 
 
 def scan_source(source: str) -> list[tuple[int, str]]:
     """Returns (line, name) for each defaulted @State the same file also sets in init."""
-    code = strip_comments(source)
-    lines = source.split("\n")
+    code, line_comments = strip_comments_and_strings(source)
     assigned = set(INIT_ASSIGNMENT.findall(code))
     hits = []
     for match in DEFAULTED_STATE.finditer(code):
         name = match.group(1)
         line = code.count("\n", 0, match.start(1)) + 1
-        if name in assigned and IGNORE not in lines[line - 1]:
+        ignored = any(IGNORE.match(comment) for comment in line_comments.get(line, []))
+        if name in assigned and not ignored:
             hits.append((line, name))
     return hits
 

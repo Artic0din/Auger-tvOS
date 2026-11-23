@@ -71,6 +71,37 @@ class ScanSourceTests(unittest.TestCase):
         )
         self.assertEqual(guard.scan_source(source), [(3, "flag")])
 
+    def test_comment_markers_inside_any_string_hide_nothing(self) -> None:
+        decl = "    @State private var flag = false\n"
+        assign = "    init() { _flag = State(initialValue: true) }\n"
+        for before in [
+            '    let a = """\n    /* not a comment\n    """\n',
+            '    let a = #"""\n    /* not a comment\n    """#\n',
+            '    let a = #"a "quote" // not a comment"#\n',
+            '    let a = "\\(x ? "/*" : "y")"\n',
+        ]:
+            source = "struct V {\n" + before + decl + assign + "}"
+            self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], before)
+        source = "struct V {\n" + decl + '    init() { let a = #"x // y"#; _flag = State(initialValue: true) }\n}'
+        self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"])
+
+    def test_assignment_text_inside_a_string_is_not_an_assignment(self) -> None:
+        for literal in ['"_flag = State("', '"""\n_flag = State(\n"""', '#"_flag = State("#']:
+            source = f"struct V {{\n    @State private var flag = false\n    let s = {literal}\n}}"
+            self.assertEqual(guard.scan_source(source), [], literal)
+
+    def test_ignore_marker_must_be_a_trailing_comment_with_a_reason(self) -> None:
+        assign = "\n    init() { _flag = State(initialValue: true) }\n}"
+        for declaration in [
+            '@State private var flag = "state-init-ignore: no"',
+            "@State private var flag = false // see state-init-ignore: rules",
+            "@State private var flag = false // state-init-ignore:",
+        ]:
+            source = "struct V {\n    " + declaration + assign
+            self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], declaration)
+        source = "struct V {\n    @State private var flag = false // state-init-ignore: B owns it" + assign
+        self.assertEqual(guard.scan_source(source), [])
+
     def test_long_comment_scans_quickly(self) -> None:
         source = "@State " + "a " * 200 + "\n" + "@State /*" + " x" * 5000 + "*/ var y = 1\n"
         start = time.monotonic()
