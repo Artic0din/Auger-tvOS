@@ -157,7 +157,8 @@ class CommandTests(unittest.TestCase):
             self.assertIn("iosApp/iosApp/Screens/View.swift:1: @State var flag", result.stdout)
 
     def test_every_scan_root_is_checked(self) -> None:
-        for scan_dir in guard.SCAN_DIRS:
+        # Listed here rather than read from the guard, so dropping a root fails.
+        for scan_dir in ["iosApp/iosApp", "iosApp/TopShelf", "iosApp/NotificationService", "iosApp/DownloadsActivity"]:
             with tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 (root / scan_dir).mkdir(parents=True)
