@@ -6,13 +6,12 @@ Report each violation as `file:line`, the rule, and the fix.
 
 ## Tests
 
-- **Fixed expectations.**
-  A test asserts against literal expected values written in the test.
-  A test whose only check compares the new code with another code path computing the same answer (for example the old implementation, or the same helper called twice) passes whenever both are wrong, so it protects nothing.
-  An equivalence check between two paths is fine beside at least one fixed-value assertion.
-- **Red before green.**
-  A bug-fix test must fail on the code before the fix.
-  Ask the author how they saw it fail when the PR doesn't say.
+- **Independent expectations.**
+  A test's expected result comes from outside the code under test: a literal, a fixture, or a direct observation of behaviour such as `XCTAssertTrue(didFinish)`.
+  A test whose only check compares the new code with another path computing the same answer (the old implementation, or the same helper called twice) passes whenever both are wrong, so it protects nothing.
+  An equivalence check between two paths is fine beside at least one independent expectation.
+- **Shown failing.**
+  When a bug-fix PR doesn't say how its test failed before the fix, ask the author for that run.
 
 ## SwiftUI identity
 
