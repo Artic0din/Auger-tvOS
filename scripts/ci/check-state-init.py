@@ -23,7 +23,8 @@ SCAN_DIRS = ["iosApp/iosApp", "iosApp/TopShelf", "iosApp/NotificationService", "
 IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 
 # `_name = State(...)`, `State<T>(...)`, or State's own contextual
-# `.init(initialValue:)`, `.init(wrappedValue:)` and `.init()`; a local
+# `.init(initialValue:)`, `.init(wrappedValue:)` and `.init()` (add a label here if
+# the app ever extends State with its own initializer); a local
 # `let _name = ...` declares a new value and is not the property's storage.
 INIT_ASSIGNMENT = re.compile(
     r"(?<![\w.])(?<!let )(?<!var )(?:self\s*\.\s*)?_(\w+)\s*=\s*"
