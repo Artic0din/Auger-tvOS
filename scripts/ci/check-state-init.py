@@ -38,8 +38,12 @@ class _Lexer:
 
     Handles `//` and nested `/* */` comments, one-line, multiline and raw
     (`#"..."#`) strings, and code inside `\\(...)` interpolation, which may
-    hold strings of its own. Records each `//` comment by line for the ignore
-    marker.
+    hold strings of its own, and extended `#/.../#` regex literals. Records
+    each `//` comment by line for the ignore marker.
+
+    shortcut: a bare `/.../` regex literal is lexed as code, since telling it
+    from division needs Swift's own heuristics; the app uses only `#/.../#`.
+    Upgrade if bare regex literals appear in the app sources.
     """
 
     def __init__(self, source: str) -> None:
@@ -81,6 +85,12 @@ class _Lexer:
                     hashes += 1
                 if i + hashes < n and src[i + hashes] == '"':
                     i = self.string(i, hashes)
+                elif hashes and i + hashes < n and src[i + hashes] == "/":
+                    # Extended regex literal `#/.../#`: no comments or code inside.
+                    close = src.find("/" + "#" * hashes, i + hashes + 1)
+                    end = n if close == -1 else close + 1 + hashes
+                    self.blank(i, end)
+                    i = end
                 else:
                     i += max(hashes, 1)
             elif in_interpolation and src[i] == "(":
@@ -97,7 +107,10 @@ class _Lexer:
         """Blanks the literal opening at `start`; returns the offset just past it."""
         src, n = self.src, self.n
         quote = start + hashes
-        multiline = src.startswith('"""', quote)
+        # `"""` opens a multiline string only when the line ends there;
+        # `#"""x"#` is a one-line raw string holding `""x`.
+        rest = src[quote + 3 : (src.find("\n", quote) + 1 or n + 1) - 1]
+        multiline = src.startswith('"""', quote) and not rest.strip()
         close = ('"""' if multiline else '"') + "#" * hashes
         escape = "\\" + "#" * hashes
         i = quote + (3 if multiline else 1)

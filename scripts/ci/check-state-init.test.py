@@ -79,6 +79,10 @@ class ScanSourceTests(unittest.TestCase):
             '    let a = #"""\n    /* not a comment\n    """#\n',
             '    let a = #"a "quote" // not a comment"#\n',
             '    let a = "\\(x ? "/*" : "y")"\n',
+            '    let a = #"""x"#\n',
+            '    let a = ##"""x"##\n',
+            '    let a = #/[/][*] /*/#\n',
+            '    let a = #/ // state-init-ignore: no /#\n',
         ]:
             source = "struct V {\n" + before + decl + assign + "}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], before)
