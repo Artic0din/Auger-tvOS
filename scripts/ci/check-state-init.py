@@ -22,16 +22,47 @@ SCAN_DIRS = ["iosApp/iosApp", "iosApp/TopShelf", "iosApp/NotificationService", "
 
 IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 
-INIT_ASSIGNMENT = re.compile(r"(?<![\w.])(?:self\s*\.\s*)?_(\w+)\s*=\s*State\s*(?:<[^\n]*?>)?\s*\(")
-
-# `@State`, then attributes and modifiers, then `var name`, an optional type
-# annotation, and `=` on that line or at the start of the next. Each repeated
-# token ends in mandatory whitespace, so the match never backtracks into
-# ambiguous splits. A `{` ends the annotation, so computed properties pass.
-_MODIFIER = r"(?:@\w+(?:\([^()]*\))?|private|fileprivate|internal|public|package|open|static|nonisolated)"
-DEFAULTED_STATE = re.compile(
-    r"@State\b(?:\([^()]*\))?\s+(?:" + _MODIFIER + r"(?:\(\w+\))?\s+)*var\s+(\w+)\b[^=\n{]*(?:\n[ \t]*)?=(?!=)"
+# `_name = State(...)`, `State<T>(...)` or the contextual `.init(...)`; a local
+# `let _name = ...` declares a new value and is not the property's storage.
+INIT_ASSIGNMENT = re.compile(
+    r"(?<![\w.])(?<!let )(?<!var )(?:self\s*\.\s*)?_(\w+)\s*=\s*"
+    r"(?:State\s*(?:<[^\n]*?>)?|\.\s*init)\s*\("
 )
+
+# `@State`, then attributes and modifiers, then `var name`. Each repeated token
+# ends in mandatory whitespace, so the match never backtracks into ambiguous
+# splits. `has_default` then reads the type annotation for a default.
+_MODIFIER = r"(?:@\w+(?:\([^()]*\))?|private|fileprivate|internal|public|package|open|static|nonisolated)"
+STATE_DECLARATION = re.compile(r"@State\b(?:\([^()]*\))?\s+(?:" + _MODIFIER + r"(?:\(\w+\))?\s+)*var\s+(\w+)\b")
+
+
+def has_default(code: str, i: int) -> bool:
+    """Whether the declaration from offset `i` (after its name) has a default.
+
+    Brackets in the type annotation may span lines. Outside them, a `{` or `;`
+    ends the declaration without a default, and so does a line break unless the
+    next line starts with `=`.
+    """
+    depth, n = 0, len(code)
+    while i < n:
+        ch = code[i]
+        if code.startswith("->", i):
+            i += 2
+            continue
+        if ch in "[(<":
+            depth += 1
+        elif ch in "])>":
+            depth -= 1
+        elif depth <= 0 and ch == "=":
+            return not code.startswith("==", i)
+        elif depth <= 0 and ch in "{;":
+            return False
+        elif depth <= 0 and ch == "\n":
+            rest = code[i + 1 :].lstrip(" \t")
+            return rest.startswith("=") and not rest.startswith("==")
+        i += 1
+    return False
+
 
 class _Lexer:
     """Blanks comments and string-literal text, keeping every newline and offset.
@@ -144,8 +175,10 @@ def scan_source(source: str) -> list[tuple[int, str]]:
     code, line_comments = strip_comments_and_strings(source)
     assigned = set(INIT_ASSIGNMENT.findall(code))
     hits = []
-    for match in DEFAULTED_STATE.finditer(code):
+    for match in STATE_DECLARATION.finditer(code):
         name = match.group(1)
+        if not has_default(code, match.end()):
+            continue
         line = code.count("\n", 0, match.start(1)) + 1
         ignored = any(IGNORE.match(comment) for comment in line_comments.get(line, []))
         if name in assigned and not ignored:

@@ -29,6 +29,8 @@ class ScanSourceTests(unittest.TestCase):
             "@State @available(iOS 18, *) private var flag = false",
             "@State // seeded in init\n    private var flag = false",
             "@State /* note */ private var flag = false",
+            "@State private var flag: [\n        String: Bool\n    ] = [:]",
+            "@State private var flag: (Int) -> Void = { _ in }",
         ]:
             source = f"struct V: View {{\n    {declaration}\n    init() {{ _flag = State(initialValue: true) }}\n}}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], declaration)
@@ -40,6 +42,7 @@ class ScanSourceTests(unittest.TestCase):
             "_flag = State<Bool>(initialValue: true)",
             "_flag = State<[String: Set<Int>]>(initialValue: [:])",
             "_flag = State<[String: Array<Set<Int>>]>(initialValue: [:])",
+            "self._flag = .init(initialValue: true)",
         ]:
             source = f"struct V: View {{\n    @State private var flag = false\n    init() {{ {assignment} }}\n}}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], assignment)
@@ -60,6 +63,7 @@ class ScanSourceTests(unittest.TestCase):
         for source in [
             "struct V {\n    @State private var flag = false\n    init() { // _flag = State(initialValue: true)\n    }\n}",
             "struct V {\n    @State private var flag = false\n    init() { /* _flag = State(initialValue: true) */ }\n}",
+            "struct V {\n    @State private var flag = false\n    init() { /* a /* b */ _flag = State(initialValue: true) */ }\n}",
             "struct V {\n    // @State private var flag = false\n    @State private var flag: Bool\n    init() { _flag = State(initialValue: true) }\n}",
         ]:
             self.assertEqual(guard.scan_source(source), [], source)
@@ -125,6 +129,8 @@ class ScanSourceTests(unittest.TestCase):
             "@State private var flag = false\ninit() { _other = State(initialValue: true) }",
             "@State private var flag = false",
             "@State private var flag: Bool { true }\ninit() { _flag = State(initialValue: true) }",
+            "@State private var flag = false\nfunc f() { let _flag = State(initialValue: true) }",
+            "@State private var flag: [\n    String: Bool\n]\ninit() { _flag = State(initialValue: [:]) }",
             "@Binding var flag: Bool\nvar other = 1\ninit() { _flag = State(initialValue: true) }",
         ]:
             self.assertEqual(guard.scan_source(source), [], source)
@@ -149,6 +155,18 @@ class CommandTests(unittest.TestCase):
             result = self.run_guard(root)
             self.assertEqual(result.returncode, 1)
             self.assertIn("iosApp/iosApp/Screens/View.swift:1: @State var flag", result.stdout)
+
+    def test_every_scan_root_is_checked(self) -> None:
+        for scan_dir in guard.SCAN_DIRS:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                (root / scan_dir).mkdir(parents=True)
+                (root / scan_dir / "View.swift").write_text(
+                    "@State private var flag = false\ninit() { _flag = State(initialValue: true) }\n"
+                )
+                result = self.run_guard(root)
+                self.assertEqual(result.returncode, 1, scan_dir)
+                self.assertIn(f"{scan_dir}/View.swift:1: @State var flag", result.stdout)
 
 
 if __name__ == "__main__":
