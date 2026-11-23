@@ -60,9 +60,11 @@ repository; approval to open one here does not cover the others.
 ## Build, Test, and Development Commands
 
 - `cd iosApp && xcodegen generate` regenerates `Silo.xcodeproj` from `project.yml`; do this after target or source layout changes.
-- Use the `mac-builder` skill's local simulator helper for iOS/tvOS build, boot,
-  install, launch, and verification. Reuse the task's established simulator and
-  preserve signing and keychain entitlements for authenticated runs.
+- On a Mac, run tests with `scripts/apple-test.sh <Silo|SiloTV|SiloMac> [TestClass ...]`;
+  it regenerates the project and signs simulator builds locally so Keychain tests pass.
+- Use the `mac-builder` skill's local simulator helper, where installed, for iOS/tvOS
+  build, boot, install, launch, and verification. Reuse the task's established
+  simulator and preserve signing and keychain entitlements for authenticated runs.
 - Use scheme `SiloTV` with a tvOS simulator destination for tvOS builds.
 - Use scheme `SiloMac` with `platform=macOS` for macOS builds.
 
