@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   test:
-    runs-on: macos-26
+    # Same hosted image as the sideload and release builds.
+    runs-on: xcode-27
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -31,21 +32,19 @@ jobs:
         ImageSizeCapabilityTests/testResetClearsCapability
         ArtworkURLTests/testDeliveryCapabilityOnIOSUsesV2RouteAndResets
         TVSignInTests/testApprovalCardExplainsEveryWayALookupEnds
-        PlayerSurfaceLayoutTests
+        PlayerSurfaceLayoutTests/testFitKeepsThePictureClearOfTheSensorHousing
+        PlayerSurfaceLayoutTests/testMobilePlayButtonIsLargeAndCentredOnThePlayer
+        PlayerSurfaceLayoutTests/testPlayingPreviewExpandsWithoutReplacingItemOrLosingItsLayer
+        PlayerSurfaceLayoutTests/testTwentyPreviewCyclesKeepOneActualAetherView
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - name: Select the newest Xcode 27
+      # The stable release this repo builds with locally; the image also carries betas.
+      - name: Select Xcode 27.2
         run: |
-          xcode=$(printf '%s\n' /Applications/Xcode_27*.app | sort -V | tail -1)
-          if [ ! -d "$xcode" ]; then
-            echo "::error::No Xcode 27 on this runner image."
-            printf '%s\n' /Applications/Xcode*.app
-            exit 1
-          fi
-          sudo xcode-select -s "$xcode"
+          sudo xcode-select -s /Applications/Xcode_27.2.app
           xcodebuild -version
 
       - name: Install XcodeGen (pinned, checksum-verified)
