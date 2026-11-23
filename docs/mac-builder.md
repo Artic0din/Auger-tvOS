@@ -236,10 +236,11 @@ scripts/apple-test.sh SiloMac                               # compile-only Mac b
 ```
 
 It runs `xcodegen generate` first, so a branch switch or a new test file never runs against a
-stale project. It picks the first available iPhone or Apple TV simulator (`SILO_SIM_ID`
-overrides), keeps one DerivedData folder per scheme, runs tests in the US region (their expected dates
-assume it), and fails any
-test that runs longer than 60 seconds (`SILO_TEST_TIMEOUT`) instead of letting it hang.
+stale project. It reuses a booted iPhone or Apple TV simulator, else picks an available one
+(`SILO_SIM_ID` overrides), keeps one DerivedData folder per scheme, runs tests in the US region
+their expected dates assume, and fails any test that runs longer than 60 seconds
+(`SILO_TEST_TIMEOUT`) instead of letting it hang. `SILO_SKIP_TESTS` takes space-separated
+`Class` or `Class/testMethod` entries to skip.
 
 Simulator test builds are signed locally, which needs no developer account. Building tests
 with `CODE_SIGNING_ALLOWED=NO` strips the Keychain entitlement, and every Keychain-backed test

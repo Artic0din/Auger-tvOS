@@ -10,7 +10,7 @@
 # limit, so one waiting on the network fails instead of hanging the run.
 #
 # Usage: scripts/apple-test.sh <Silo|SiloTV|SiloMac> [TestClass ...]
-#   SILO_SIM_ID          simulator UDID (default: first available iPhone or Apple TV)
+#   SILO_SIM_ID          simulator UDID (default: a booted, else any, iPhone or Apple TV)
 #   SILO_DERIVED_DATA    DerivedData root (default: ~/Library/Developer/Xcode/DerivedData/silo-<scheme>)
 #   SILO_TEST_TIMEOUT    seconds per test (default: 60)
 #   SILO_SKIP_TESTS      space-separated Class or Class/testMethod to skip
@@ -21,9 +21,9 @@ scheme="${1:-}"
 [[ $# -gt 0 ]] && shift
 
 case "$scheme" in
-  Silo) bundle=SiloTests; platform="iOS Simulator"; family=iPhone ;;
-  SiloTV) bundle=SiloTVTests; platform="tvOS Simulator"; family="Apple TV" ;;
-  SiloMac) bundle=""; platform=macOS; family="" ;;
+  Silo) bundle=SiloTests; platform="iOS Simulator"; runtime=iOS; family=iPhone ;;
+  SiloTV) bundle=SiloTVTests; platform="tvOS Simulator"; runtime=tvOS; family="Apple TV" ;;
+  SiloMac) bundle=""; platform=macOS; runtime=""; family="" ;;
   *) echo "usage: scripts/apple-test.sh <Silo|SiloTV|SiloMac> [TestClass ...]" >&2; exit 2 ;;
 esac
 
@@ -38,15 +38,21 @@ if [[ "$scheme" == SiloMac ]]; then
   exec xcodebuild build "${args[@]}" -destination "platform=macOS" CODE_SIGNING_ALLOWED=NO
 fi
 
+# A booted simulator first, so a running one is reused.
 sim="${SILO_SIM_ID:-$(xcrun simctl list devices available -j | python3 -c '
 import json, sys
-family = sys.argv[1]
-for runtime, devices in json.load(sys.stdin)["devices"].items():
-    for device in devices:
-        if device["name"].startswith(family):
-            print(device["udid"])
-            sys.exit(0)
-' "$family")}"
+runtime, family = sys.argv[1], sys.argv[2]
+matches = [
+    device
+    for key, devices in json.load(sys.stdin)["devices"].items()
+    if f".SimRuntime.{runtime}-" in key
+    for device in devices
+    if family in device["name"]
+]
+matches.sort(key=lambda device: device["state"] != "Booted")
+if matches:
+    print(matches[0]["udid"])
+' "$runtime" "$family")}"
 [[ -n "$sim" ]] || { echo "apple-test: no available $family simulator; set SILO_SIM_ID" >&2; exit 1; }
 
 timeout="${SILO_TEST_TIMEOUT:-60}"
