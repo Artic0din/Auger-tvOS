@@ -28,6 +28,7 @@ jobs:
       #   #57 ImageSizeCapabilityTests, ArtworkURLTests
       #   #58 TVSignInTests
       #   #59 PlayerSurfaceLayoutTests
+      #   #64 MediaAuthorizationPlaybackTests
       SILO_SKIP_TESTS: >-
         ImageSizeCapabilityTests/testResetClearsCapability
         ArtworkURLTests/testDeliveryCapabilityOnIOSUsesV2RouteAndResets
@@ -36,6 +37,9 @@ jobs:
         PlayerSurfaceLayoutTests/testMobilePlayButtonIsLargeAndCentredOnThePlayer
         PlayerSurfaceLayoutTests/testPlayingPreviewExpandsWithoutReplacingItemOrLosingItsLayer
         PlayerSurfaceLayoutTests/testTwentyPreviewCyclesKeepOneActualAetherView
+        MediaAuthorizationPlaybackTests/testBearerRotationContinuesOnTheSamePlayerAndItem
+      # Hosted runners are about 3x slower than a local Mac; media tests need room.
+      SILO_TEST_TIMEOUT: 180
     steps:
       - uses: actions/checkout@v4
         with:
