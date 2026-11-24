@@ -20,6 +20,23 @@ final class HostedDiagnosticsAPITests: XCTestCase {
         XCTAssertEqual(configuration.requestCachePolicy, .reloadIgnoringLocalCacheData)
     }
 
+    func testDefaultCollectorCapabilitiesFailsClosedWithoutSendingARequest() async throws {
+        let api = HostedDiagnosticsAPI(
+            baseURL: HostedDiagnosticsAPI.defaultBaseURL,
+            session: makeSession(),
+            credentialStore: HostedTestCredentialStore(credential: nil)
+        )
+
+        do {
+            _ = try await api.capabilities()
+            XCTFail("Expected invalidBaseURL when hosted collector is disabled")
+        } catch let error as HostedDiagnosticsAPIError {
+            XCTAssertEqual(error, .invalidBaseURL)
+        }
+
+        XCTAssertTrue(hostedStub.requests().isEmpty)
+    }
+
     func testCollectorBaseURLMustBeHTTPSOriginWithoutPathOrIdentity() async throws {
         for rawURL in [
             "http://collector.example",

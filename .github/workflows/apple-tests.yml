@@ -1,0 +1,53 @@
+name: Apple tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apple-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # Same hosted image as the sideload and release builds.
+    runs-on: xcode-27
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [Auger]
+    env:
+      # Known failures tracked by issues; remove an entry when its issue is fixed.
+      #   #57 ImageSizeCapabilityTests, ArtworkURLTests
+      #   #64 MediaAuthorizationPlaybackTests
+      SILO_SKIP_TESTS: >-
+        ImageSizeCapabilityTests/testResetClearsCapability
+        ArtworkURLTests/testDeliveryCapabilityOnIOSUsesV2RouteAndResets
+        MediaAuthorizationPlaybackTests/testBearerRotationContinuesOnTheSamePlayerAndItem
+      # Hosted runners are about 3x slower than a local Mac; media tests need room.
+      SILO_TEST_TIMEOUT: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # Same Xcode as release.yml and sideload-ipa.yml, so a change that breaks
+      # the release compiler fails here first. Update all three together.
+      - name: Select Xcode 27.1
+        run: |
+          sudo xcode-select -s /Applications/Xcode_27.1.app
+          xcodebuild -version
+
+      - name: Install XcodeGen (pinned, checksum-verified)
+        uses: ./.github/actions/install-xcodegen
+        with:
+          save-cache: ${{ github.event_name == 'push' }}
+
+      - name: Build and test ${{ matrix.scheme }}
+        run: scripts/apple-test.sh "${{ matrix.scheme }}"

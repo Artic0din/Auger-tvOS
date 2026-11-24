@@ -132,14 +132,14 @@ end
 # xcodebuild's xcargs as a shell string, so only the exact release-asset shape
 # release-source.yml uploads is accepted. The tag segment allows `+` and its
 # `%2B` encoding for single-platform tags such as v1.4.0+ios.
-SOURCE_ARCHIVE_URL = %r{\Ahttps://github\.com/Artic0din/silo-apple/releases/download/[A-Za-z0-9._%+-]+/Auger-source-[0-9a-f]{40}\.tar\.gz\z}
+SOURCE_ARCHIVE_URL = %r{\Ahttps://github\.com/Artic0din/Auger-tvOS/releases/download/[A-Za-z0-9._%+-]+/Auger-source-[0-9a-f]{40}\.tar\.gz\z}
 
 def source_url_xcarg
   value = ENV["SILO_RELEASE_SOURCE_URL"].to_s.strip
   return "" if value.empty?
 
   unless value.match?(SOURCE_ARCHIVE_URL)
-    UI.user_error!("Invalid SILO_RELEASE_SOURCE_URL #{value.inspect}; expected an Auger-source-<commit>.tar.gz release asset of Artic0din/silo-apple")
+    UI.user_error!("Invalid SILO_RELEASE_SOURCE_URL #{value.inspect}; expected an Auger-source-<commit>.tar.gz release asset of Artic0din/Auger-tvOS")
   end
   "SILO_SOURCE_URL=#{value} "
 end

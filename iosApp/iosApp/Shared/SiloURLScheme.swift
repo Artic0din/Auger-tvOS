@@ -2,9 +2,9 @@ import Foundation
 
 /// Auger's custom URL scheme for Top Shelf items and in-app deep links.
 ///
-/// Server-generated links may still use the `silo://` scheme, so both `auger`
-/// and `silo` are accepted when parsing incoming URLs while Auger emits
-/// `auger://` for its own links.
+/// `tvOS-Info.plist` registers only `auger` for OS dispatch so Auger does not
+/// collide with another Silo client on the same Apple TV. Links parsed inside
+/// Auger still accept both `auger://` and server-generated `silo://` URLs.
 enum SiloURLScheme {
     static let current = "auger"
     static let compatible = "silo"

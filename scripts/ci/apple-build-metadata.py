@@ -70,7 +70,7 @@ def spm_cache_scope(env, lock_sha256, project_sha256, toolchain_key='', *,
     scheme = env.get('SCHEME') or {'tvOS': 'Auger'}.get(
         env.get('PLATFORM'), 'Auger')
     owner = env.get('SILO_SPM_CACHE_SAVE_OWNER', '')
-    repository = 'Artic0din/silo-apple'
+    repository = 'Artic0din/Auger-tvOS'
     event = env.get('GITHUB_EVENT_NAME')
     ref = env.get('GITHUB_REF', '')
     # Reusable workflows inherit the caller's event. Release gates can read the

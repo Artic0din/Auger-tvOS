@@ -93,7 +93,7 @@ class FastlaneReleaseTest < Minitest::Test
     APP_STORE_CONNECT_API_KEY_KEY_ID APP_STORE_CONNECT_API_KEY_ISSUER_ID
     APP_STORE_CONNECT_API_KEY_KEY FL_ORIG_DEFAULT_KC FL_ORIG_KC_LIST FL_CI_KEYCHAIN_MANAGED
   ].freeze
-  SOURCE_URL = "https://github.com/Artic0din/silo-apple/releases/download/v1.4.0/Auger-source-#{'a' * 40}.tar.gz".freeze
+  SOURCE_URL = "https://github.com/Artic0din/Auger-tvOS/releases/download/v1.4.0/Auger-source-#{'a' * 40}.tar.gz".freeze
 
   def setup
     @saved_env = ENV_KEYS.to_h { |key| [key, ENV[key]] }

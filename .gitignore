@@ -79,3 +79,5 @@ docs/tvos-player/*
 !docs/release/
 !docs/*-api-v2.md
 !docs/aether-forward-only-resume.md
+
+__pycache__/

@@ -116,7 +116,7 @@ SwiftAssRenderer, SwiftLibass, and local ASS rendering
   FriBidi is statically linked. App and library source, a revision
   manifest, and instructions for rebuilding with a modified library are
   published as Auger-source-<app-commit>.tar.gz at:
-  https://github.com/Artic0din/silo-apple/releases
+  https://github.com/Artic0din/Auger-tvOS/releases
   Builds from the release and sideload workflows link the archive at the top
   of these acknowledgements; local builds link the repository. No original
   release signing keys are needed to rebuild for a simulator; physical-device

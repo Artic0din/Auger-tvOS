@@ -104,12 +104,12 @@ runs:
         spm_profile=scheme
         trusted_event=false
         if [[ "${GITHUB_EVENT_NAME:-}" == workflow_dispatch ||
-              ( "${GITHUB_EVENT_NAME:-}" == pull_request && "${SILO_PULL_REQUEST_HEAD_REPOSITORY:-}" == Artic0din/silo-apple ) ||
+              ( "${GITHUB_EVENT_NAME:-}" == pull_request && "${SILO_PULL_REQUEST_HEAD_REPOSITORY:-}" == Artic0din/Auger-tvOS ) ||
               ( "${GITHUB_EVENT_NAME:-}" == push && ( "${GITHUB_REF:-}" == refs/heads/main ||
                 ( "${SILO_RELEASE_GATE:-false}" == true && "${GITHUB_REF:-}" == refs/tags/* ) ) ) ]]; then
           trusted_event=true
         fi
-        if [[ "$SPM_PROFILE" == shared_qualified && "${GITHUB_REPOSITORY:-}" == Artic0din/silo-apple &&
+        if [[ "$SPM_PROFILE" == shared_qualified && "${GITHUB_REPOSITORY:-}" == Artic0din/Auger-tvOS &&
               "$trusted_event" == true && "${SILO_BENCH_VARIANT:-}" == optimized &&
               "$CACHE_SOURCE_SHA" =~ ^[0-9a-f]{40}$ && "$CACHE_SOURCE_SHA" != 0000000000000000000000000000000000000000 &&
               "$CACHE_SOURCE_DIRTY" == false &&

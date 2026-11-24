@@ -1,5 +1,5 @@
 name: Bug report
-description: Report something broken in Auger for Apple TV
+description: Report something broken in Auger on Apple TV (tvOS)
 title: "[bug] "
 labels: ["bug"]
 body:
@@ -8,7 +8,7 @@ body:
       value: |
         Report behavior you reproduced yourself on Apple TV. Keep what you observed separate from any theory about the cause. Redact credentials, tokens, personal data, server addresses, and private media details, and mark each redaction.
 
-        Problems that also happen in the Silo web app usually come from the server and belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose). Read [CONTRIBUTING.md](https://github.com/Artic0din/silo-apple/blob/main/CONTRIBUTING.md) first.
+        Problems that also happen in the Silo web app usually come from the server and belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose). Read [CONTRIBUTING.md](https://github.com/Artic0din/Auger-tvOS/blob/main/CONTRIBUTING.md) first.
   - type: textarea
     id: what-happened
     attributes:
@@ -84,6 +84,11 @@ body:
     attributes:
       label: Technical notes
       description: Optional suspected root cause or related observations. Keep this separate from what you observed above.
+  - type: input
+    id: ai-disclosure
+    attributes:
+      label: AI disclosure
+      description: Optional. Note if you used AI to draft or investigate this issue (tool and model), or leave blank.
   - type: checkboxes
     id: confirmations
     attributes:

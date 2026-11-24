@@ -1,8 +1,8 @@
 import Foundation
 
 enum SiloLegalLinks {
-    static let privacyPolicy = URL(string: "https://github.com/Artic0din/silo-apple/blob/main/PRIVACY.md")!
-    static let repository = URL(string: "https://github.com/Artic0din/silo-apple")!
+    static let privacyPolicy = URL(string: "https://github.com/Artic0din/Auger-tvOS/blob/main/PRIVACY.md")!
+    static let repository = URL(string: "https://github.com/Artic0din/Auger-tvOS")!
 
     /// The published source archive for this build. Release lanes stamp it as
     /// `SiloSourceURL`; local builds have none and link the repository.

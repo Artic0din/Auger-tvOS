@@ -29,14 +29,14 @@ cat > "$tmp/notes.md" <<'NOTES'
 
 ## What's Changed
 ### 🚀 Features
-* feat(player): skip recaps automatically by @dev in https://github.com/Artic0din/silo-apple/pull/764
+* feat(player): skip recaps automatically by @dev in https://github.com/Artic0din/Auger-tvOS/pull/764
 ### 🐛 Fixes
-* fix(home): reload Home when the app returns by @dev in https://github.com/Artic0din/silo-apple/pull/760
+* fix(home): reload Home when the app returns by @dev in https://github.com/Artic0din/Auger-tvOS/pull/760
 
 ## New Contributors
-* @newcomer made their first contribution in https://github.com/Artic0din/silo-apple/pull/700
+* @newcomer made their first contribution in https://github.com/Artic0din/Auger-tvOS/pull/700
 
-**Full Changelog**: https://github.com/Artic0din/silo-apple/compare/a...b
+**Full Changelog**: https://github.com/Artic0din/Auger-tvOS/compare/a...b
 NOTES
 
 reply() { jq -n --arg text "$1" --arg stop "${2:-end_turn}" \

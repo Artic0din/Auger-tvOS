@@ -11,17 +11,18 @@ Playback notes live in `docs/tvos-player/`, tvOS focus guidance lives in `docs/t
 ## Server Compatibility Boundary
 
 Auger talks to self-hosted Silo servers over `/api/v2`.
-Keep wire-protocol names that Silo Server expects unchanged: Bonjour service types (`_silopair._tcp`, `_silocast._tcp`, `_silo._tcp`), HTTP headers (`X-Silo-Client`, `X-Silo-Client-Version`, `X-Silo-Client-Channel`), the native OAuth callback scheme (`org.siloserver.silo`), and incoming `silo://` deep-link compatibility alongside Auger's own `auger://` scheme.
+Keep wire-protocol names that Silo Server expects unchanged: Bonjour service types (`_silopair._tcp`, `_silocast._tcp`, `_silo._tcp`), HTTP headers (`X-Silo-Client`, `X-Silo-Client-Version`, `X-Silo-Client-Channel`), the native OAuth callback scheme (`org.siloserver.silo`), and in-app `silo://` URL parsing compatibility alongside Auger's own `auger://` scheme.
+Register only `auger` in `iosApp/iosApp/tvOS-Info.plist` (`CFBundleURLSchemes`) so OS-level URL dispatch does not collide with another installed Silo client.
 Auger identifies itself as `X-Silo-Client: Auger`, uses the `com.artic0din.auger` identifier namespace (`com.artic0din.auger.topshelf`, `group.com.artic0din.auger`, `com.artic0din.auger.shared`), and sends diagnostics only to the user's own Silo server (never to a third-party hosted collector).
 
 ## Build, Test, and Development Commands
 
 - `cd iosApp && xcodegen generate` regenerates `Auger.xcodeproj` from `project.yml`.
   Run this after target, signing, or source layout changes instead of hand-editing generated `.xcodeproj` files.
-- Build unsigned for tvOS simulator:
+- On a Mac, run tvOS unit tests with `scripts/apple-test.sh Auger [TestClass ...]`.
+  It regenerates `Auger.xcodeproj` and signs simulator builds locally so Keychain-backed tests pass.
+- Build unsigned for tvOS simulator (compile-only):
   `xcodebuild build -project Auger.xcodeproj -scheme Auger -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' CODE_SIGN_IDENTITY='' CODE_SIGNING_ALLOWED=NO`
-- Run unit tests on tvOS simulator (ad-hoc signed for Keychain tests):
-  `xcodebuild test -project Auger.xcodeproj -scheme Auger -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' CODE_SIGN_ALLOWED=YES CODE_SIGN_IDENTITY=-`
 - Unsigned compilation with `CODE_SIGNING_ALLOWED=NO` is compile-only evidence; do not install that artifact for an authenticated simulator run.
 - See `docs/mac-builder.md` if building on a remote Mac host.
 
@@ -42,6 +43,8 @@ Tests use XCTest under `iosApp/Tests/` (`AugerTests`, with `-module-alias Silo=A
 Add focused regression tests when they protect changed behavior, and use rendered checks on an Apple TV simulator or device for visual changes.
 Avoid tests that only mirror wording or implementation.
 Also run the CI script checks in `.github/workflows/ci-scripts.yml` when touching CI scripts, Fastlane lanes, or localization/API guards.
+
+Reviewing a diff: apply every rule in `CODING_STANDARDS.md`.
 
 ## Writing
 

@@ -385,7 +385,7 @@ class MetadataTests(unittest.TestCase):
     def proof_env(self, root, capture, scheme='Auger'):
         return {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF_NAME': 'main',
                 'GITHUB_SHA': metadata.command('git', 'rev-parse', 'HEAD', cwd=root),
-                'GITHUB_REPOSITORY': 'Artic0din/silo-apple', 'GITHUB_RUN_ID': '100',
+                'GITHUB_REPOSITORY': 'Artic0din/Auger-tvOS', 'GITHUB_RUN_ID': '100',
                 'GITHUB_RUN_ATTEMPT': '1', 'SILO_FULL_SUITE': 'true', 'SCHEME': scheme,
                 'SILO_COMPILATION_CACHE_ENABLED': 'false', 'SILO_BENCHMARK_SOURCE_REF': '',
                 'SILO_PREPARED_SIMULATOR_RUNTIMES': str(capture),
@@ -523,7 +523,7 @@ class MetadataTests(unittest.TestCase):
 
     def shared_spm_env(self):
         return {'SILO_SPM_CACHE_PROFILE': 'shared_qualified',
-                'GITHUB_EVENT_NAME': 'workflow_dispatch', 'GITHUB_REPOSITORY': 'Artic0din/silo-apple',
+                'GITHUB_EVENT_NAME': 'workflow_dispatch', 'GITHUB_REPOSITORY': 'Artic0din/Auger-tvOS',
                 'GITHUB_REF': 'refs/heads/fixture', 'SILO_BENCH_VARIANT': 'optimized',
                 'SILO_CACHE_MODE': 'dependencies', 'SCHEME': 'Auger', 'PLATFORM': 'tvOS',
                 'SILO_SPM_CACHE_SAVE_OWNER': 'Auger'}
@@ -603,7 +603,7 @@ class MetadataTests(unittest.TestCase):
                          'Auger')
 
     def test_same_repository_pr_main_push_and_inherited_release_events_can_share(self):
-        events = ({'GITHUB_EVENT_NAME': 'pull_request', 'SILO_PULL_REQUEST_HEAD_REPOSITORY': 'Artic0din/silo-apple'},
+        events = ({'GITHUB_EVENT_NAME': 'pull_request', 'SILO_PULL_REQUEST_HEAD_REPOSITORY': 'Artic0din/Auger-tvOS'},
                   {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF': 'refs/heads/main'},
                   {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF': 'refs/heads/main', 'SILO_RELEASE_GATE': 'true'},
                   {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF': 'refs/tags/v1.0', 'SILO_RELEASE_GATE': 'true'},

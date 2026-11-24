@@ -31,7 +31,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>auger</string>
-				<string>silo</string>
 			</array>
 		</dict>
 	</array>

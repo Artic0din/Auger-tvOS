@@ -293,6 +293,8 @@ jobs:
           TESTFLIGHT_EXTERNAL_GROUPS: ${{ secrets.TESTFLIGHT_EXTERNAL_GROUPS }}
           SILO_RELEASE_SOURCE_URL: ${{ needs.source.outputs.source_url }}
 
+  # Note on the prerelease that the build reached testers. Promotion and the
+  # next run's notes rely on it.
   record:
     needs: [prepare, tvos-distribution]
     if: ${{ !cancelled() && needs.tvos-distribution.result == 'success' }}
@@ -309,6 +311,7 @@ jobs:
           BUILD: ${{ needs.prepare.outputs.build }}
         run: |
           set -euo pipefail
+          # promote.yml matches "on tvOS."
           gh release view "$TAG" --json body --jq .body > body.md
           {
             grep -v '^TestFlight: distributed ' body.md || true

@@ -31,4 +31,4 @@ Any external metadata provider configuration is controlled by your server admini
 
 ## Contact
 
-Questions or privacy reports can be filed at [Artic0din/silo-apple/issues](https://github.com/Artic0din/silo-apple/issues).
+Questions or privacy reports can be filed at [Artic0din/Auger-tvOS/issues](https://github.com/Artic0din/Auger-tvOS/issues).

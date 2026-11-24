@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Problem with Silo Server or its web app
+  - name: Problem with the Silo server or web app
     url: https://github.com/Silo-Server/silo-server/issues/new/choose
-    about: Report server or API issues in silo-server, especially if the problem also happens in the web app.
+    about: Report server or API issues in silo-server, especially if they also happen in the web app.
   - name: Report a security vulnerability
-    url: https://github.com/Artic0din/silo-apple/security/advisories/new
-    about: Report security issues in Auger privately. Do not open a public issue.
+    url: https://github.com/Artic0din/Auger-tvOS/security/advisories/new
+    about: Report Auger security vulnerabilities privately. Do not open a public issue.

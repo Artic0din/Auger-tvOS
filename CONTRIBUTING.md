@@ -1,7 +1,7 @@
 # Contributing to Auger
 
 > [!IMPORTANT]
-> The most helpful way to contribute right now is a clear, accurate [issue](https://github.com/Artic0din/silo-apple/issues).
+> The most helpful way to contribute right now is a clear, accurate [issue](https://github.com/Artic0din/Auger-tvOS/issues).
 > Pull requests are welcome when a maintainer asks for one.
 
 ## Why we ask for issues
@@ -12,7 +12,7 @@ This applies whether or not you used AI.
 
 ## Write a useful issue
 
-Open an [issue](https://github.com/Artic0din/silo-apple/issues) for bugs or feature requests in Auger (Apple TV / tvOS).
+Open an [issue](https://github.com/Artic0din/Auger-tvOS/issues) for bugs or feature requests in Auger (Apple TV / tvOS).
 Problems with the Silo server or its API belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose), not here.
 Search existing issues first and add new details to an open issue rather than filing a duplicate.
 
@@ -31,7 +31,7 @@ Include the details needed to reproduce or evaluate the request:
 ## Pull requests
 
 Pull requests are welcome when a maintainer asks for one, usually in an issue comment.
-If a problem matters and no maintainer has asked for a pull request, open an [issue](https://github.com/Artic0din/silo-apple/issues) instead.
+If a problem matters and no maintainer has asked for a pull request, open an [issue](https://github.com/Artic0din/Auger-tvOS/issues) instead.
 
 When you open an invited pull request:
 

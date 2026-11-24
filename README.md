@@ -113,7 +113,7 @@ See [PRIVACY.md](PRIVACY.md) for details.
 
 ## Contributing
 
-Right now, the most helpful way to contribute is a clear, accurate [issue](https://github.com/Artic0din/silo-apple/issues).
+Right now, the most helpful way to contribute is a clear, accurate [issue](https://github.com/Artic0din/Auger-tvOS/issues).
 We implement and review changes through our own workflow, so a good issue usually helps more than a pull request.
 
 Pull requests are welcome when a maintainer asks for one.

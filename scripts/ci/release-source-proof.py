@@ -21,7 +21,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
-REPOSITORY = "Artic0din/silo-apple"
+REPOSITORY = "Artic0din/Auger-tvOS"
 CALLERS = (".github/workflows/release.yml", ".github/workflows/sideload-ipa.yml")
 RESOLVED = "iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
 PINS = "scripts/ci/swift-libass-sources.json"
