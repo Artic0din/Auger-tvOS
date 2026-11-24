@@ -1,5 +1,5 @@
 # Xcode / XcodeGen
-iosApp/Silo.xcodeproj/
+iosApp/Auger.xcodeproj/
 *.xcworkspace/
 xcuserdata/
 *.xcuserstate
@@ -8,15 +8,15 @@ iosApp/.deriveddata/
 
 # XcodeGen regenerates the project, but the exact Aether transitive graph is a
 # release input and must remain reviewable.
-!iosApp/Silo.xcodeproj/
-iosApp/Silo.xcodeproj/*
-!iosApp/Silo.xcodeproj/project.xcworkspace/
-iosApp/Silo.xcodeproj/project.xcworkspace/*
-!iosApp/Silo.xcodeproj/project.xcworkspace/xcshareddata/
-iosApp/Silo.xcodeproj/project.xcworkspace/xcshareddata/*
-!iosApp/Silo.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
-iosApp/Silo.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
-!iosApp/Silo.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+!iosApp/Auger.xcodeproj/
+iosApp/Auger.xcodeproj/*
+!iosApp/Auger.xcodeproj/project.xcworkspace/
+iosApp/Auger.xcodeproj/project.xcworkspace/*
+!iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/
+iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/*
+!iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
+!iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # SwiftPM / CocoaPods
 .build/
@@ -62,13 +62,17 @@ logs/
 output/
 .DS_Store
 Thumbs.db
+__pycache__/
+*.pyc
 .swiftpm/
 docs/*
 !docs/tvos-focus.md
 !docs/mac-builder.md
 !docs/i18n.md
+!docs/skyline-design-guide.md
 !docs/tvos-player/
 docs/tvos-player/*
+!docs/tvos-player/README.md
 !docs/tvos-player/aetherengine-replacement-spec.md
 !docs/tvos-player/ass-subtitles.md
 !docs/release/*
