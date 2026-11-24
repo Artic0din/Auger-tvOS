@@ -111,7 +111,7 @@ SweetPad drives Xcode's compiler, SDKs, signing tools and simulators, so the ful
 
 ## Contributing
 
-Right now, the most helpful way to contribute is a clear, accurate [issue](https://github.com/Artic0din/silo-apple/issues).
+Right now, the most helpful way to contribute is a clear, accurate [issue](https://github.com/Artic0din/Auger-tvOS/issues).
 We implement and review changes through our own workflow, so a good issue usually helps more than a pull request.
 
 Pull requests are welcome when a maintainer asks for one.
@@ -138,7 +138,7 @@ A second additional permission allows combining it with platform SDKs; see [PLAT
 
 Silo and the Silo logo are trademarks of Silo Media L.L.C.
 This README uses the Silo name only to say what Auger connects to and what it is based on, which Silo's [trademark policy](https://github.com/Silo-Server/siloserver.org/blob/main/TRADEMARK.md) and [brand guidelines](https://siloserver.org/brand#usage) allow without permission.
-The app target, bundle identifiers, display names and asset catalog still contain upstream Silo files, tracked in [#65](https://github.com/Artic0din/silo-apple/issues/65), which must be replaced before any distributed build.
+The app target, bundle identifiers, display names and asset catalog still contain upstream Silo files, tracked in [#65](https://github.com/Artic0din/Auger-tvOS/issues/65), which must be replaced before any distributed build.
 Auger is not an official Silo product, and Silo Media L.L.C. does not operate, sponsor or endorse it.
 Official Silo software comes only from the [Silo-Server](https://github.com/Silo-Server) organization on GitHub, [siloserver.org](https://siloserver.org), and app-store listings published by Silo Media L.L.C.
 

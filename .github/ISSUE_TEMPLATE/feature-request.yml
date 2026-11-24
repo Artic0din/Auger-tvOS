@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an improvement or feature for Auger on Apple TV
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This fork focuses on Apple TV (tvOS) and drops iOS and macOS work. Requests that require new server or API behavior belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose). Read [CONTRIBUTING.md](https://github.com/Artic0din/Auger-tvOS/blob/main/CONTRIBUTING.md) first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve, and who does it affect?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe how it should work on Apple TV.
+    validations:
+      required: true
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical notes
+      description: Optional notes, pointers to files, or related issues.
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched open and closed issues, and this is not already requested
+          required: true
