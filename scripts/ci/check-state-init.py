@@ -14,6 +14,7 @@ Usage: scripts/ci/check-state-init.py [--root DIR]
 from __future__ import annotations
 
 import argparse
+import bisect
 import re
 import sys
 from pathlib import Path
@@ -32,7 +33,7 @@ INIT_ASSIGNMENT = re.compile(
     r"(?:(State)\b|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
 )
 
-_TYPE_KEYWORDS = {"any", "some", "inout", "borrowing", "consuming", "sending", "each", "repeat"}
+_TYPE_KEYWORDS = {"async", "throws", "any", "some", "inout", "borrowing", "consuming", "sending", "each", "repeat"}
 _CLOSERS = {"<": ">", "[": "]", "(": ")"}
 
 
@@ -46,8 +47,9 @@ def calls_state(code: str, i: int) -> bool:
     """Whether the `State` ending at `i` is called, directly or as `State<T>(`.
 
     Generic arguments are read as a type, which may span lines: brackets nest
-    and match, two names sit side by side only after a keyword such as `some`,
-    and nothing else but `.,:?!&@` and `->` appears. A `State < x` comparison
+    and match, two names or integers sit side by side only after a keyword such
+    as `some` or `async`, and nothing else but `.,:?!&@`, backticks and `->`
+    appears. A `State < x` comparison
     breaks one of those rules before it can reach a later `> (`.
     """
     n = len(code)
@@ -62,7 +64,7 @@ def calls_state(code: str, i: int) -> bool:
         if ch.isspace():
             i += 1
             continue
-        if ch.isalpha() or ch == "_":
+        if ch.isalnum() or ch == "_":
             j = i
             while j < n and (code[j].isalnum() or code[j] == "_"):
                 j += 1
@@ -79,7 +81,7 @@ def calls_state(code: str, i: int) -> bool:
         elif ch in ">])":
             if _CLOSERS[stack.pop()] != ch:
                 return False
-        elif ch not in ".,:?!&@":
+        elif ch not in ".,:?!&@`":
             return False
         i += 1
     return not stack and code.startswith("(", _skip_space(code, i))
@@ -146,6 +148,7 @@ class _Lexer:
         self.out = list(source)
         self.n = len(source)
         self.line_comments: dict[int, list[str]] = {}
+        self.newlines = [k for k, ch in enumerate(source) if ch == "\n"]
 
     def blank(self, start: int, end: int) -> None:
         for k in range(start, min(end, self.n)):
@@ -159,7 +162,7 @@ class _Lexer:
             if src.startswith("//", i):
                 end = src.find("\n", i)
                 end = n if end == -1 else end
-                line = src.count("\n", 0, i) + 1
+                line = bisect.bisect_left(self.newlines, i) + 1
                 self.line_comments.setdefault(line, []).append(src[i:end])
                 self.blank(i, end)
                 i = end
