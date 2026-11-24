@@ -50,7 +50,8 @@ fi
 # Match the device type, not the editable name; a booted simulator first, so a
 # running one is reused.
 # Skip runtimes older than the deployment target in project.yml.
-minimum="$(sed -n "s/^ *$runtime: \"\(.*\)\"/\1/p" project.yml | head -1)"
+minimum="$(sed -n -E "s/^ *$runtime: *[\"']?([0-9]+(\.[0-9]+)*)[\"']? *$/\1/p" project.yml | head -1)"
+[[ -n "$minimum" ]] || { echo "apple-test: no $runtime deploymentTarget in project.yml; set SILO_SIM_ID" >&2; exit 1; }
 sim="${SILO_SIM_ID:-$(xcrun simctl list devices available -j | python3 -c '
 import json, re, sys
 runtime, family, minimum = sys.argv[1], sys.argv[2], sys.argv[3]
