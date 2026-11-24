@@ -1,9 +1,8 @@
 require "base64"
 require "shellwords"
 
-# iOS, tvOS, and macOS release automation. CI reserves one build number
-# before launching parallel TestFlight builds. Signing credentials come from
-# the environment; bundle identifiers match the checked-in Apple targets.
+# tvOS release automation for Auger. Signing credentials come from the
+# environment; bundle identifiers match the checked-in tvOS targets.
 
 default_platform(:ios)
 
@@ -133,14 +132,14 @@ end
 # xcodebuild's xcargs as a shell string, so only the exact release-asset shape
 # release-source.yml uploads is accepted. The tag segment allows `+` and its
 # `%2B` encoding for single-platform tags such as v1.4.0+ios.
-SOURCE_ARCHIVE_URL = %r{\Ahttps://github\.com/Silo-Server/silo-apple/releases/download/[A-Za-z0-9._%+-]+/Silo-source-[0-9a-f]{40}\.tar\.gz\z}
+SOURCE_ARCHIVE_URL = %r{\Ahttps://github\.com/Artic0din/silo-apple/releases/download/[A-Za-z0-9._%+-]+/Auger-source-[0-9a-f]{40}\.tar\.gz\z}
 
 def source_url_xcarg
   value = ENV["SILO_RELEASE_SOURCE_URL"].to_s.strip
   return "" if value.empty?
 
   unless value.match?(SOURCE_ARCHIVE_URL)
-    UI.user_error!("Invalid SILO_RELEASE_SOURCE_URL #{value.inspect}; expected a Silo-source-<commit>.tar.gz release asset of Silo-Server/silo-apple")
+    UI.user_error!("Invalid SILO_RELEASE_SOURCE_URL #{value.inspect}; expected an Auger-source-<commit>.tar.gz release asset of Artic0din/silo-apple")
   end
   "SILO_SOURCE_URL=#{value} "
 end
@@ -154,7 +153,7 @@ end
 SIDELOAD_CHANNEL_XCARG = "SILO_BUILD_CHANNEL=sideload ".freeze
 
 # Turns off the user-independent keychain for the unsigned tvOS sideload lane.
-# SiloTV.xcconfig and SiloTVTopShelf.xcconfig default SILO_USER_INDEPENDENT_KEYCHAIN
+# Auger.xcconfig and AugerTopShelf.xcconfig default SILO_USER_INDEPENDENT_KEYCHAIN
 # to YES for builds that carry the user-management entitlement
 # (runs-as-current-user-with-user-independent-keychain). The sideload archive
 # has no entitlements, and re-signers generally cannot grant that one, so the
@@ -183,8 +182,8 @@ def resolve_build_number(api_key:, app_identifier:, platform:)
   ) + 1
 end
 
-# Regenerates Silo.xcodeproj from project.yml and resolves SPM packages for the
-# given scheme. Shared by the unsigned IPA lanes.
+# Regenerates Auger.xcodeproj from project.yml and resolves SPM packages for the
+# given scheme. Shared by the unsigned IPA lane.
 # Returns the absolute iosApp directory.
 #
 # Note: testflight_release intentionally does NOT use this helper — it interleaves
@@ -193,7 +192,7 @@ end
 def prepare_xcode_project(scheme:)
   ios_app_dir = File.expand_path("../iosApp", __dir__)
   sh("xcodegen generate --spec '#{ios_app_dir}/project.yml'")
-  resolve_source_packages(project: "#{ios_app_dir}/Silo.xcodeproj", scheme: scheme)
+  resolve_source_packages(project: "#{ios_app_dir}/Auger.xcodeproj", scheme: scheme)
   ios_app_dir
 end
 
@@ -310,44 +309,17 @@ end
 #                        match, update_code_signing_settings and export_options
 #                        all see the targets in this order.
 TESTFLIGHT_PLATFORMS = {
-  ios: {
-    match_platform:        "ios",
-    build_number_platform: "ios",
-    scheme:                "Silo",
-    destination:           "generic/platform=iOS",
-    output_directory:      "build/ios",
-    output_name:           "Silo",
-    package:               :ipa,
-    targets: {
-      "Silo"                    => "org.siloserver.silo",
-      "SiloNotificationService" => "org.siloserver.silo.NotificationService",
-      "SiloDownloadsActivity"   => "org.siloserver.silo.DownloadsActivity",
-    }.freeze,
-  }.freeze,
   tvos: {
     match_platform:        "tvos",
     build_number_platform: "appletvos",
-    scheme:                "SiloTV",
+    scheme:                "Auger",
     destination:           "generic/platform=tvOS",
     output_directory:      "build/tvos",
-    output_name:           "SiloTV",
+    output_name:           "Auger",
     package:               :ipa,
     targets: {
-      "SiloTV"         => "org.siloserver.silo",
-      "SiloTVTopShelf" => "org.siloserver.silo.topshelf",
-    }.freeze,
-  }.freeze,
-  macos: {
-    match_platform:        "macos",
-    build_number_platform: "osx",
-    scheme:                "SiloMac",
-    destination:           "generic/platform=macOS",
-    output_directory:      "build/macos",
-    output_name:           "Silo",
-    package:               :pkg,
-    match_cert_types:      ["mac_installer_distribution"].freeze,
-    targets: {
-      "SiloMac" => "org.siloserver.silo",
+      "Auger"         => "com.artic0din.auger",
+      "AugerTopShelf" => "com.artic0din.auger.topshelf",
     }.freeze,
   }.freeze,
 }.freeze
@@ -387,10 +359,10 @@ def testflight_release(platform)
   # falls back to the latest git commit subject when not set.
   changelog   = testflight_changelog
   ios_app_dir = File.expand_path("../iosApp", __dir__)
-  project     = "#{ios_app_dir}/Silo.xcodeproj"
+  project     = "#{ios_app_dir}/Auger.xcodeproj"
   UI.message("TestFlight distribution: #{testflight_upload[:distribution]}")
 
-  # Regenerate Silo.xcodeproj from project.yml first. update_code_signing_settings
+  # Regenerate Auger.xcodeproj from project.yml first. update_code_signing_settings
   # below writes each target's profile into the generated project, so xcodegen
   # must not run again after it. match writes nothing to the project: it
   # installs the certs and profiles and records their names in lane_context.
@@ -470,12 +442,7 @@ def testflight_release(platform)
     }
   )
 
-  # The validator reads .app and .ipa, not .pkg, so check the archived app on macOS.
-  if config[:package] == :pkg
-    validate_subtitle_packaging("#{artifact}.xcarchive/Products/Applications/Silo.app")
-  else
-    validate_subtitle_packaging(package)
-  end
+  validate_subtitle_packaging(package)
 
   upload_to_testflight(
     api_key:                 api_key,
@@ -634,7 +601,7 @@ end
 # Keychains only exist on macOS; the next_build_number lane runs on a
 # Linux runner where `security` is absent, so gate every hook on mac? too.
 
-API_ONLY_LANES = %i[next_build_number distribute_ios distribute_tvos distribute_macos].freeze
+API_ONLY_LANES = %i[next_build_number distribute_tvos].freeze
 
 def ci_keychain_managed?(lane)
   is_ci && FastlaneCore::Helper.mac? && !API_ONLY_LANES.include?(lane.to_sym)
@@ -687,20 +654,16 @@ def restore_ci_keychain_state
   end
 end
 
-# ── iOS + tvOS + macOS ────────────────────────────────────────────────────────
+# ── tvOS ──────────────────────────────────────────────────────────────────────
 
 platform :ios do
 
   # ── Signing maintenance ───────────────────────────────────────────────────
 
-  desc "Generate/refresh all App Store provisioning profiles in the Match repo (run locally, read-write)"
+  desc "Generate/refresh tvOS App Store provisioning profiles in the Match repo (run locally, read-write)"
   lane :sync_signing do
     api_key = setup_api_key
 
-    # One read-write match per platform (iOS, tvOS, then macOS), covering every
-    # target testflight_release signs: iOS has the app plus the notification
-    # service and downloads Live Activity extensions; tvOS has the app plus Top
-    # Shelf; macOS has the app and the installer certificate for its .pkg.
     TESTFLIGHT_PLATFORMS.each_value do |config|
       match(
         type:                  "appstore",
@@ -715,24 +678,9 @@ platform :ios do
 
   # ── TestFlight ────────────────────────────────────────────────────────────
 
-  desc "Build the iOS app and upload to TestFlight"
-  lane :beta_ios do
-    testflight_release(:ios)
-  end
-
   desc "Build the tvOS app and upload to TestFlight"
   lane :beta_tvos do
     testflight_release(:tvos)
-  end
-
-  desc "Build the macOS app and upload to TestFlight"
-  lane :beta_macos do
-    testflight_release(:macos)
-  end
-
-  desc "Wait for the exact uploaded iOS build and distribute it to TestFlight groups"
-  lane :distribute_ios do
-    distribute_testflight_release(:ios)
   end
 
   desc "Wait for the exact uploaded tvOS build and distribute it to TestFlight groups"
@@ -740,21 +688,12 @@ platform :ios do
     distribute_testflight_release(:tvos)
   end
 
-  desc "Wait for the exact uploaded macOS build and distribute it to TestFlight groups"
-  lane :distribute_macos do
-    distribute_testflight_release(:macos)
-  end
-
   # ── Build-number reservation ────────────────────────────────────────────────
 
-  desc "Print the next TestFlight build number, shared by iOS, tvOS, and macOS (CI)"
+  desc "Print the next TestFlight build number for tvOS (CI)"
   lane :next_build_number do
-    # Query-only: no keychain/signing setup needed, so this runs on a plain
-    # Linux runner. One number for every platform, so "1.0.0 (66)" names the
-    # same build on iPhone, Apple TV, and Mac and in the release tag
-    # v1.0.0-beta.66.
     api_key = setup_api_key
-    app_id  = "org.siloserver.silo"
+    app_id  = "com.artic0din.auger"
 
     latest = TESTFLIGHT_PLATFORMS.values.map do |config|
       latest_testflight_build_number(
@@ -762,67 +701,26 @@ platform :ios do
       )
     end.max
 
-    # Emit a key=value line to BUILD_NUMBERS_FILE (release.yml reads it back).
-    # Append so we never clobber other lines already there.
     out = ENV.fetch("BUILD_NUMBERS_FILE", "build_numbers.env")
     File.open(out, "a") { |f| f.puts "next_build=#{latest + 1}" }
-    UI.success("Next build number for iOS, tvOS, and macOS: #{latest + 1}")
+    UI.success("Next build number for tvOS: #{latest + 1}")
   end
 
-  # ── Unsigned IPAs for third-party signing / sideloading ─────────────────────
-  #
-  # These lanes build an installable-once-re-signed IPA with NO code signing:
-  # no match, no distribution cert, no App Store Connect key. The user re-signs
-  # the artifact with their own account (AltStore / Sideloadly / SideStore / etc.)
-  # before sideloading. Because nothing is uploaded and no secrets are read, they
-  # run on any macOS runner without release credentials. See
-  # docs/release/sideloading.md for the caveats (entitlement remapping, 7-day
-  # free-account expiry, and the tvOS host-pairing / Top Shelf notes).
-
-  desc "Build an unsigned iOS IPA for third-party signing / sideloading (no upload)"
-  lane :ipa_ios_unsigned do
-    ios_app_dir  = prepare_xcode_project(scheme: "Silo")
-    output_dir   = File.expand_path("../build/ios-unsigned", __dir__)
-    archive_path = "#{output_dir}/Silo.xcarchive"
-
-    # Archive with signing disabled — no certs required. CURRENT_PROJECT_VERSION
-    # comes from CI when set; local runs fall back to the project.yml value.
-    xcodebuild(
-      archive:      true,
-      project:      "#{ios_app_dir}/Silo.xcodeproj",
-      scheme:       "Silo",
-      destination:  "generic/platform=iOS",
-      archive_path: archive_path,
-      xcargs:       "#{locked_package_xcargs}-showBuildTimingSummary " \
-                    "#{marketing_version_xcarg}#{build_number_xcarg}#{source_url_xcarg}" \
-                    "#{SIDELOAD_CHANNEL_XCARG}" \
-                    "CODE_SIGNING_ALLOWED=NO " \
-                    "CODE_SIGNING_REQUIRED=NO " \
-                    "CODE_SIGN_IDENTITY='' " \
-                    "CODE_SIGN_ENTITLEMENTS=''"
-    )
-
-    package_unsigned_ipa(
-      archive_path: archive_path,
-      app_name:     "Silo",
-      output_dir:   output_dir,
-      output_ipa:   "Silo-unsigned.ipa"
-    )
-  end
+  # ── Unsigned IPA for third-party signing / sideloading ──────────────────────
 
   desc "Build an unsigned tvOS IPA for third-party signing / sideloading (no upload)"
   lane :ipa_tvos_unsigned do
-    ios_app_dir  = prepare_xcode_project(scheme: "SiloTV")
+    ios_app_dir  = prepare_xcode_project(scheme: "Auger")
     output_dir   = File.expand_path("../build/tvos-unsigned", __dir__)
-    archive_path = "#{output_dir}/SiloTV.xcarchive"
+    archive_path = "#{output_dir}/Auger.xcarchive"
 
-    # The embedded Top Shelf extension is archived as part of SiloTV.app, so no
+    # The embedded Top Shelf extension is archived as part of Auger.app, so no
     # per-target signing handling is needed here. Re-signers that cannot sign the
     # extension (e.g. free accounts) can strip it before sideloading.
     xcodebuild(
       archive:      true,
-      project:      "#{ios_app_dir}/Silo.xcodeproj",
-      scheme:       "SiloTV",
+      project:      "#{ios_app_dir}/Auger.xcodeproj",
+      scheme:       "Auger",
       destination:  "generic/platform=tvOS",
       archive_path: archive_path,
       xcargs:       "#{locked_package_xcargs}-showBuildTimingSummary " \
@@ -837,9 +735,9 @@ platform :ios do
 
     package_unsigned_ipa(
       archive_path: archive_path,
-      app_name:     "SiloTV",
+      app_name:     "Auger",
       output_dir:   output_dir,
-      output_ipa:   "SiloTV-unsigned.ipa"
+      output_ipa:   "Auger-unsigned.ipa"
     )
   end
 

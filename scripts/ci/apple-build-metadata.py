@@ -9,14 +9,13 @@ from pathlib import Path
 import re
 import subprocess
 
-LOCK = Path('iosApp/Silo.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved')
-SDKS = {'Silo': 'iphonesimulator', 'SiloTV': 'appletvsimulator', 'SiloMac': 'macosx'}
-DEVICE_SDKS = {'Silo-device': 'iphoneos', 'SiloTV-device': 'appletvos', 'SiloMac-device': 'macosx'}
-# Simulator runtime prefix and device type that each mobile scheme tests on.
+LOCK = Path('iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved')
+SDKS = {'Auger': 'appletvsimulator'}
+DEVICE_SDKS = {'Auger-device': 'appletvos'}
+# Simulator runtime prefix and device type that the tvOS scheme tests on.
 TEST_SIMULATORS = {
-    'Silo': ('com.apple.CoreSimulator.SimRuntime.iOS-', 'com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro'),
-    'SiloTV': ('com.apple.CoreSimulator.SimRuntime.tvOS-',
-               'com.apple.CoreSimulator.SimDeviceType.Apple-TV-4K-3rd-generation-4K'),
+    'Auger': ('com.apple.CoreSimulator.SimRuntime.tvOS-',
+              'com.apple.CoreSimulator.SimDeviceType.Apple-TV-4K-3rd-generation-4K'),
 }
 SHARED_SPM_LOCK_SHA256 = '40e3e0fbe264adac749a1f7db3f91a311e67f6419eeecad6bd4d88c07efd9410'
 SHARED_SPM_PROJECT_SHA256 = 'b698ee86dc410c8ada9251778a655f5428b2ea663ccfc8ba1291f180aa472eca'
@@ -68,10 +67,10 @@ def spm_cache_scope(env, lock_sha256, project_sha256, toolchain_key='', *,
     requested = env.get('SILO_SPM_CACHE_PROFILE', 'scheme')
     if requested not in ('scheme', 'shared_qualified'):
         raise ValueError('Unknown package cache profile')
-    scheme = env.get('SCHEME') or {'iOS': 'Silo', 'tvOS': 'SiloTV', 'macOS': 'SiloMac'}.get(
-        env.get('PLATFORM'), 'SiloMac')
+    scheme = env.get('SCHEME') or {'tvOS': 'Auger'}.get(
+        env.get('PLATFORM'), 'Auger')
     owner = env.get('SILO_SPM_CACHE_SAVE_OWNER', '')
-    repository = 'Silo-Server/silo-apple'
+    repository = 'Artic0din/silo-apple'
     event = env.get('GITHUB_EVENT_NAME')
     ref = env.get('GITHUB_REF', '')
     # Reusable workflows inherit the caller's event. Release gates can read the
@@ -187,7 +186,7 @@ def toolchains(runtime_capture=None, selected_scheme='', runtime_identifier=''):
         item = {**xcode, 'architecture': architecture,
                 'sdk_version': sdk_versions[scheme],
                 'sdk_build': command('xcrun', '--sdk', sdk, '--show-sdk-build-version')}
-        if scheme != 'SiloMac':
+        if scheme in TEST_SIMULATORS:
             matching = [runtime for runtime in test_runtimes(runtimes, scheme, item['sdk_version'])
                         if not runtime_capture or scheme != selected_scheme
                         or runtime.get('identifier') == runtime_identifier]
@@ -226,7 +225,7 @@ def metadata(root, env, runtime_capture=None, *, device_scheme=None):
         tools = toolchains(runtime_capture, env.get('SCHEME', ''), env.get('SILO_TEST_RUNTIME_IDENTIFIER', ''))
         # SDK build and architecture also scope caches; runtime changes are covered
         # separately by the complete release-proof toolchain metadata.
-        cache_inputs = {'xcode': tools['Silo']['xcode_build'], 'architecture': tools['Silo']['architecture'],
+        cache_inputs = {'xcode': tools['Auger']['xcode_build'], 'architecture': tools['Auger']['architecture'],
                         'sdks': {scheme: tools[scheme]['sdk_build'] for scheme in SDKS}}
     key = hashlib.sha256(json.dumps(cache_inputs, sort_keys=True).encode()).hexdigest()[:24]
     config = hashlib.sha256()
@@ -249,8 +248,8 @@ def emit_outputs(result, path):
 
 def benchmark(result, env):
     tools = json.loads(result['toolchain_json'])
-    platform = env.get('PLATFORM', 'macOS')
-    scheme = {'iOS': 'Silo', 'tvOS': 'SiloTV', 'macOS': 'SiloMac'}[platform]
+    platform = env.get('PLATFORM', 'tvOS')
+    scheme = {'tvOS': 'Auger'}[platform]
     spm_hit = env.get('SILO_SPM_CACHE_HIT') == 'true'
     derived_hit = env.get('SILO_DERIVED_CACHE_HIT') == 'true'
     derived_restored = derived_hit or env.get('SILO_DERIVED_CACHE_RESTORED') == 'true'
@@ -297,7 +296,7 @@ def proof(result, root, env, scheme):
     if hashlib.sha256(committed).hexdigest() != result['lock_sha256']:
         raise ValueError('Package.resolved changed during dependency preparation')
     tools = json.loads(result['toolchain_json'])[scheme]
-    if scheme != 'SiloMac' and (not tools['runtime_version'] or not tools['runtime_build']):
+    if scheme in TEST_SIMULATORS and (not tools['runtime_version'] or not tools['runtime_build']):
         raise ValueError('Simulator runtime metadata is unavailable')
     return {'schema_version': 1, 'repository': env['GITHUB_REPOSITORY'],
             'workflow_path': '.github/workflows/player-regression.yml',
@@ -334,7 +333,7 @@ def main():
     # Reuse only the inventory that selected this job's mobile test runtime.
     # Initial inputs and macOS proof metadata retain live runtime discovery.
     runtime_capture = (Path(os.environ['SILO_PREPARED_SIMULATOR_RUNTIMES'])
-                       if (args.benchmark or args.proof in ('Silo', 'SiloTV'))
+                       if (args.benchmark or args.proof == 'Auger')
                        and os.environ.get('SILO_PREPARED_SIMULATOR_RUNTIMES') else None)
     if runtime_capture and args.proof and args.proof != os.environ.get('SCHEME'):
         raise ValueError('Release proof scheme does not match the prepared simulator')

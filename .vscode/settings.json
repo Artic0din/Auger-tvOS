@@ -6,16 +6,13 @@
   "search.exclude": {
     "**/.deriveddata": true,
     "**/DerivedData": true,
-    "**/Silo.xcodeproj": true
+    "**/Auger.xcodeproj": true
   },
   "sweetpad.build.configuration": "Debug",
   "sweetpad.testing.configuration": "Debug",
   "sweetpad.build.derivedDataPath": "iosApp/.deriveddata",
   "sweetpad.build.schemes.include": [
-    "Silo",
-    "SiloNoDebugger",
-    "SiloTV",
-    "SiloMac"
+    "Auger"
   ],
   "sweetpad.build.xcbeautifyEnabled": true,
   "sweetpad.buildServer.provider": "sweetpad",

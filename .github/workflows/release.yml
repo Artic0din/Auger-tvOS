@@ -1,9 +1,9 @@
 name: TestFlight Release
 
-# Makes a TestFlight build: tags the commit vX.Y.Z-beta.B, publishes a GitHub
-# prerelease with notes on what changed since the last build, and uploads iOS,
-# tvOS, and macOS build B of marketing version X.Y.Z to TestFlight. X.Y.Z stays the
-# same until promote.yml drafts its App Store release, so later builds skip
+# Makes a tvOS TestFlight build: tags the commit vX.Y.Z-beta.B, publishes a
+# GitHub prerelease with notes on what changed since the last build, and
+# uploads tvOS build B of marketing version X.Y.Z to TestFlight. X.Y.Z stays
+# the same until promote.yml drafts its App Store release, so later builds skip
 # Beta App Review.
 # See docs/release/ci-release.md.
 
@@ -23,26 +23,11 @@ on:
         description: 'Optional: use this marketing version (for example 1.2.0) instead of bump.'
         required: false
         type: string
-      platform:
-        description: 'Which platform(s) to release'
-        required: true
-        type: choice
-        default: all
-        options:
-          - all
-          - ios
-          - tvos
-          - macos
 
-# Serialize releases: each run takes the next build number, so overlapping
-# runs would collide. Let an in-flight release finish.
 concurrency:
   group: testflight-release
   cancel-in-progress: false
 
-# Apple build jobs only read the repository. The release and source jobs get
-# contents: write to publish the prerelease and its rebuild sources before
-# binary distribution.
 permissions:
   contents: read
 
@@ -52,11 +37,10 @@ env:
   SILO_CACHE_NAMESPACE: production
 
 jobs:
-  # Choose the version, build number and tag once so every job agrees on them.
   prepare:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # list draft releases, which read-only tokens can't see
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
@@ -70,7 +54,7 @@ jobs:
           exit 1
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # all tags
+          fetch-depth: 0
           persist-credentials: false
       - uses: ruby/setup-ruby@v1
         with:
@@ -81,8 +65,6 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
         run: BUILD_NUMBERS_FILE="$RUNNER_TEMP/testflight.env" bundle exec fastlane ios next_build_number
-      # A promoted version waiting for App Review (a draft vX.Y.Z release)
-      # counts as released.
       - name: Choose version and build
         id: version
         env:
@@ -96,7 +78,6 @@ jobs:
             echo "::error::Could not read the latest TestFlight build number."
             exit 1
           fi
-          # Read every page: a draft can be older than the newest 100 releases.
           draft_tags="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
             --jq '.[] | select(.draft) | .tag_name')"
           drafts=()
@@ -105,9 +86,6 @@ jobs:
           done
           python3 scripts/ci/release-version.py next --bump "$BUMP" --version "$VERSION" \
             --min-build "$min_build" "${drafts[@]}" | tee -a "$GITHUB_OUTPUT"
-      # A prerelease without the distribution note comes from a run that failed
-      # before testers got the build. Starting this build's notes there would
-      # leave out changes no tester got.
       - name: Require the previous build to have reached testers
         env:
           GH_TOKEN: ${{ github.token }}
@@ -120,14 +98,12 @@ jobs:
             exit 1
           fi
 
-  # Publish the prerelease before any binary:
-  # the app links its source archive, which must be public first.
   release:
     needs: prepare
     if: ${{ !cancelled() && needs.prepare.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write # create the release (and generate its notes)
+      contents: write
     outputs:
       changelog: ${{ steps.changelog.outputs.value }}
     env:
@@ -145,11 +121,6 @@ jobs:
           gh api "repos/$GH_REPO/releases/generate-notes" \
             -f tag_name="$TAG" -f target_commitish="$GITHUB_SHA" \
             ${PREVIOUS_TAG:+-f previous_tag_name="$PREVIOUS_TAG"} --jq .body > "$RUNNER_TEMP/notes.md"
-      # TestFlight's "What to Test", leaving room for the source line the
-      # Fastfile appends (4,000 max): Claude's summary of the pull request
-      # titles, or the plain list of Features and Fixes when that fails or
-      # ANTHROPIC_API_KEY isn't set. The key exists only in this step, on a
-      # GitHub-hosted runner, and the workflow only runs by manual dispatch.
       - name: Write What to Test
         id: changelog
         env:
@@ -169,10 +140,9 @@ jobs:
             echo
             echo "From $source:"
             echo
-            # Indented, so the text shows as a code block whatever it contains.
             sed 's/^/    /' "$what_to_test"
           } >> "$GITHUB_STEP_SUMMARY"
-          delimiter="silo_changelog_$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
+          delimiter="auger_changelog_$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
           {
             echo "value<<$delimiter"
             cat "$what_to_test"
@@ -182,11 +152,8 @@ jobs:
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
           BUILD: ${{ needs.prepare.outputs.build }}
-          PLATFORM: ${{ inputs.platform }}
         run: |
           set -euo pipefail
-          # A re-run of this run's failed jobs finds its own release. Anything
-          # else holding the tag is a different build.
           if gh release view "$TAG" >/dev/null 2>&1; then
             if [ "$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)" != "$GITHUB_SHA" ]; then
               echo "::error::$TAG already belongs to another commit. Run Release again for a new build number."
@@ -195,22 +162,15 @@ jobs:
             echo "$TAG already exists for this commit; re-using it."
             exit 0
           fi
-          case "$PLATFORM" in
-            ios) platforms="iOS" ;;
-            tvos) platforms="tvOS" ;;
-            macos) platforms="macOS" ;;
-            *) platforms="iOS, tvOS, and macOS" ;;
-          esac
           {
-            echo "TestFlight build $VERSION ($BUILD) for $platforms."
+            echo "TestFlight build $VERSION ($BUILD) for tvOS."
             echo
             cat "$RUNNER_TEMP/notes.md"
             echo
-            echo "Source and rebuild instructions are in the Silo-source archive."
+            echo "Source and rebuild instructions are in the Auger-source archive."
           } > notes.md
-          # A prerelease never becomes Latest; that stays the App Store release.
           gh release create "$TAG" --target "$GITHUB_SHA" --prerelease \
-            --title "Silo $VERSION ($BUILD)" --notes-file notes.md
+            --title "Auger $VERSION ($BUILD)" --notes-file notes.md
 
   source:
     needs: [prepare, release]
@@ -222,98 +182,9 @@ jobs:
     with:
       release_tag: ${{ needs.prepare.outputs.tag }}
 
-  ios:
-    needs: [prepare, release, source]
-    if: >-
-      !cancelled() && needs.prepare.result == 'success' && needs.source.result == 'success' &&
-      (inputs.platform == 'all' || inputs.platform == 'ios')
-    runs-on: xcode-27
-    env:
-      SILO_SOURCE_PACKAGES_PATH: ${{ github.workspace }}/.ci-cache/packages
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Select Xcode 27.1
-        run: sudo xcode-select -s /Applications/Xcode_27.1.app
-
-      - name: Record archive cache inputs
-        id: metadata
-        run: python3 scripts/ci/apple-build-metadata.py --root . --device-scheme Silo-device --outputs
-
-      - name: Install XcodeGen (pinned, checksum-verified)
-        uses: ./.github/actions/install-xcodegen
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Restore release packages
-        id: cache
-        continue-on-error: true
-        uses: ./.github/actions/cache-spm
-        with:
-          operation: restore
-          root: '.'
-          mode: dependencies
-          namespace: ${{ env.SILO_CACHE_NAMESPACE }}
-          toolchain-key: ${{ steps.metadata.outputs.toolchain_key }}
-          lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
-          project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
-          source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: Silo-device
-
-      - name: Build and upload iOS to TestFlight
-        run: bundle exec fastlane ios beta_ios
-        env:
-          MARKETING_VERSION: ${{ needs.prepare.outputs.version }}
-          BUILD_NUMBER: ${{ needs.prepare.outputs.build }}
-          TESTFLIGHT_CHANGELOG: ${{ needs.release.outputs.changelog }}
-          SILO_DEFER_TESTFLIGHT_DISTRIBUTION: 'true'
-          TEAM_ID: ${{ secrets.TEAM_ID }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
-          TESTFLIGHT_EXTERNAL_GROUPS: ${{ secrets.TESTFLIGHT_EXTERNAL_GROUPS }}
-          SILO_RELEASE_SOURCE_URL: ${{ needs.source.outputs.source_url }}
-
-      - name: Report archive package cache size
-        continue-on-error: true
-        run: |
-          if [ -d "$SILO_SOURCE_PACKAGES_PATH" ]; then
-            size_kib=$(du -sk "$SILO_SOURCE_PACKAGES_PATH" | cut -f1)
-            echo "Package cache: $size_kib KiB" | tee -a "$GITHUB_STEP_SUMMARY"
-          else
-            echo "No package cache directory was produced" | tee -a "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Save release packages after successful upload
-        continue-on-error: true
-        uses: ./.github/actions/cache-spm
-        with:
-          operation: save
-          root: '.'
-          mode: dependencies
-          namespace: ${{ env.SILO_CACHE_NAMESPACE }}
-          toolchain-key: ${{ steps.metadata.outputs.toolchain_key }}
-          lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
-          project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
-          source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: Silo-device
-          save-cache: 'true'
-          save-dependencies: 'true'
-          spm-cache-hit: ${{ steps.cache.outputs.spm-cache-hit }}
-
   tvos:
     needs: [prepare, release, source]
-    if: >-
-      !cancelled() && needs.prepare.result == 'success' && needs.source.result == 'success' &&
-      (inputs.platform == 'all' || inputs.platform == 'tvos')
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.source.result == 'success' }}
     runs-on: xcode-27
     env:
       SILO_SOURCE_PACKAGES_PATH: ${{ github.workspace }}/.ci-cache/packages
@@ -328,7 +199,7 @@ jobs:
 
       - name: Record archive cache inputs
         id: metadata
-        run: python3 scripts/ci/apple-build-metadata.py --root . --device-scheme SiloTV-device --outputs
+        run: python3 scripts/ci/apple-build-metadata.py --root . --device-scheme Auger-device --outputs
 
       - name: Install XcodeGen (pinned, checksum-verified)
         uses: ./.github/actions/install-xcodegen
@@ -350,7 +221,7 @@ jobs:
           lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
           project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
           source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: SiloTV-device
+          scheme: Auger-device
 
       - name: Build and upload tvOS to TestFlight
         run: bundle exec fastlane ios beta_tvos
@@ -391,124 +262,10 @@ jobs:
           lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
           project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
           source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: SiloTV-device
+          scheme: Auger-device
           save-cache: 'true'
           save-dependencies: 'true'
           spm-cache-hit: ${{ steps.cache.outputs.spm-cache-hit }}
-
-
-  macos:
-    needs: [prepare, release, source]
-    if: >-
-      !cancelled() && needs.prepare.result == 'success' && needs.source.result == 'success' &&
-      (inputs.platform == 'all' || inputs.platform == 'macos')
-    runs-on: xcode-27
-    env:
-      SILO_SOURCE_PACKAGES_PATH: ${{ github.workspace }}/.ci-cache/packages
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Select Xcode 27.1
-        run: sudo xcode-select -s /Applications/Xcode_27.1.app
-
-      - name: Record archive cache inputs
-        id: metadata
-        run: python3 scripts/ci/apple-build-metadata.py --root . --device-scheme SiloMac-device --outputs
-
-      - name: Install XcodeGen (pinned, checksum-verified)
-        uses: ./.github/actions/install-xcodegen
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Restore release packages
-        id: cache
-        continue-on-error: true
-        uses: ./.github/actions/cache-spm
-        with:
-          operation: restore
-          root: '.'
-          mode: dependencies
-          namespace: ${{ env.SILO_CACHE_NAMESPACE }}
-          toolchain-key: ${{ steps.metadata.outputs.toolchain_key }}
-          lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
-          project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
-          source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: SiloMac-device
-
-      - name: Build and upload macOS to TestFlight
-        run: bundle exec fastlane ios beta_macos
-        env:
-          MARKETING_VERSION: ${{ needs.prepare.outputs.version }}
-          BUILD_NUMBER: ${{ needs.prepare.outputs.build }}
-          TESTFLIGHT_CHANGELOG: ${{ needs.release.outputs.changelog }}
-          SILO_DEFER_TESTFLIGHT_DISTRIBUTION: 'true'
-          TEAM_ID: ${{ secrets.TEAM_ID }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
-          TESTFLIGHT_EXTERNAL_GROUPS: ${{ secrets.TESTFLIGHT_EXTERNAL_GROUPS }}
-          SILO_RELEASE_SOURCE_URL: ${{ needs.source.outputs.source_url }}
-
-      - name: Report archive package cache size
-        continue-on-error: true
-        run: |
-          if [ -d "$SILO_SOURCE_PACKAGES_PATH" ]; then
-            size_kib=$(du -sk "$SILO_SOURCE_PACKAGES_PATH" | cut -f1)
-            echo "Package cache: $size_kib KiB" | tee -a "$GITHUB_STEP_SUMMARY"
-          else
-            echo "No package cache directory was produced" | tee -a "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Save release packages after successful upload
-        continue-on-error: true
-        uses: ./.github/actions/cache-spm
-        with:
-          operation: save
-          root: '.'
-          mode: dependencies
-          namespace: ${{ env.SILO_CACHE_NAMESPACE }}
-          toolchain-key: ${{ steps.metadata.outputs.toolchain_key }}
-          lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
-          project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
-          source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: SiloMac-device
-          save-cache: 'true'
-          save-dependencies: 'true'
-          spm-cache-hit: ${{ steps.cache.outputs.spm-cache-hit }}
-
-  ios-distribution:
-    needs: [ios, prepare, release, source]
-    if: >-
-      !cancelled() && needs.ios.result == 'success' &&
-      needs.prepare.result == 'success' && needs.source.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-      - name: Wait for and distribute the uploaded iOS build
-        run: bundle exec fastlane ios distribute_ios
-        env:
-          MARKETING_VERSION: ${{ needs.prepare.outputs.version }}
-          BUILD_NUMBER: ${{ needs.prepare.outputs.build }}
-          TESTFLIGHT_CHANGELOG: ${{ needs.release.outputs.changelog }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
-          TESTFLIGHT_EXTERNAL_GROUPS: ${{ secrets.TESTFLIGHT_EXTERNAL_GROUPS }}
-          SILO_RELEASE_SOURCE_URL: ${{ needs.source.outputs.source_url }}
 
   tvos-distribution:
     needs: [tvos, prepare, release, source]
@@ -536,40 +293,9 @@ jobs:
           TESTFLIGHT_EXTERNAL_GROUPS: ${{ secrets.TESTFLIGHT_EXTERNAL_GROUPS }}
           SILO_RELEASE_SOURCE_URL: ${{ needs.source.outputs.source_url }}
 
-
-  macos-distribution:
-    needs: [macos, prepare, release, source]
-    if: >-
-      !cancelled() && needs.macos.result == 'success' &&
-      needs.prepare.result == 'success' && needs.source.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-      - name: Wait for and distribute the uploaded macOS build
-        run: bundle exec fastlane ios distribute_macos
-        env:
-          MARKETING_VERSION: ${{ needs.prepare.outputs.version }}
-          BUILD_NUMBER: ${{ needs.prepare.outputs.build }}
-          TESTFLIGHT_CHANGELOG: ${{ needs.release.outputs.changelog }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
-          TESTFLIGHT_EXTERNAL_GROUPS: ${{ secrets.TESTFLIGHT_EXTERNAL_GROUPS }}
-          SILO_RELEASE_SOURCE_URL: ${{ needs.source.outputs.source_url }}
-
-  # Note on the prerelease which platforms reached testers. Promotion and the
-  # next run's notes rely on it.
   record:
-    needs: [prepare, ios-distribution, tvos-distribution, macos-distribution]
-    if: >-
-      !cancelled() && (needs.ios-distribution.result == 'success' ||
-      needs.tvos-distribution.result == 'success' || needs.macos-distribution.result == 'success')
+    needs: [prepare, tvos-distribution]
+    if: ${{ !cancelled() && needs.tvos-distribution.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -581,24 +307,11 @@ jobs:
           TAG: ${{ needs.prepare.outputs.tag }}
           VERSION: ${{ needs.prepare.outputs.version }}
           BUILD: ${{ needs.prepare.outputs.build }}
-          IOS: ${{ needs.ios-distribution.result }}
-          TVOS: ${{ needs.tvos-distribution.result }}
-          MACOS: ${{ needs.macos-distribution.result }}
         run: |
           set -euo pipefail
-          # promote.yml matches "on iOS and tvOS." and "on iOS, tvOS, and macOS."
-          names=()
-          [ "$IOS" = success ] && names+=(iOS)
-          [ "$TVOS" = success ] && names+=(tvOS)
-          [ "$MACOS" = success ] && names+=(macOS)
-          case "${#names[@]}" in
-            1) platforms="${names[0]}" ;;
-            2) platforms="${names[0]} and ${names[1]}" ;;
-            *) platforms="${names[0]}, ${names[1]}, and ${names[2]}" ;;
-          esac
           gh release view "$TAG" --json body --jq .body > body.md
           {
             grep -v '^TestFlight: distributed ' body.md || true
-            echo "TestFlight: distributed $VERSION ($BUILD) to external testers on $platforms."
+            echo "TestFlight: distributed $VERSION ($BUILD) to external testers on tvOS."
           } > notes.md
           gh release edit "$TAG" --notes-file notes.md

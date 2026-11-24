@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Exercise the release lanes without Fastlane, Xcode, signing, or network access.
+# Exercise the tvOS release lanes without Fastlane, Xcode, signing, or network access.
 # Every action and App Store Connect query below uses an in-memory replacement.
 require_relative "fastlane-test-helper"
 require "tmpdir"
@@ -20,7 +20,6 @@ module FastlaneCore
       builds.first
     end
   end
-
 end
 
 module Spaceship
@@ -45,7 +44,7 @@ module Spaceship
 
     module Platform
       def self.map(value)
-        { "ios" => "IOS", "appletvos" => "TV_OS", "osx" => "MAC_OS" }.fetch(value)
+        { "appletvos" => "TV_OS" }.fetch(value)
       end
     end
   end
@@ -94,7 +93,7 @@ class FastlaneReleaseTest < Minitest::Test
     APP_STORE_CONNECT_API_KEY_KEY_ID APP_STORE_CONNECT_API_KEY_ISSUER_ID
     APP_STORE_CONNECT_API_KEY_KEY FL_ORIG_DEFAULT_KC FL_ORIG_KC_LIST FL_CI_KEYCHAIN_MANAGED
   ].freeze
-  SOURCE_URL = "https://github.com/Silo-Server/silo-apple/releases/download/v1.4.0/Silo-source-#{'a' * 40}.tar.gz".freeze
+  SOURCE_URL = "https://github.com/Artic0din/silo-apple/releases/download/v1.4.0/Auger-source-#{'a' * 40}.tar.gz".freeze
 
   def setup
     @saved_env = ENV_KEYS.to_h { |key| [key, ENV[key]] }
@@ -108,7 +107,7 @@ class FastlaneReleaseTest < Minitest::Test
       "APP_STORE_CONNECT_API_KEY_KEY" => ["test-key"].pack("m0")
     )
     @app = TestApp.new("app-1", [])
-    @build = TestBuild.new("build-7", "7", "1.4.0", "IOS", "VALID", false, TestBetaDetail.new(true), @app)
+    @build = TestBuild.new("build-7", "7", "1.4.0", "TV_OS", "VALID", false, TestBetaDetail.new(true), @app)
     @group = TestGroup.new("group-1", "Public Beta", false, [@build])
     @app.groups = [@group]
     Spaceship::ConnectAPI.test_app = @app
@@ -126,9 +125,9 @@ class FastlaneReleaseTest < Minitest::Test
 
   def test_deferred_upload_never_waits_for_changelog_or_distributes
     ENV["SILO_DEFER_TESTFLIGHT_DISTRIBUTION"] = "true"
-    @lane.run_lane(:beta_ios)
+    @lane.run_lane(:beta_tvos)
     options = action_options(:testflight)
-    assert_equal "build/ios/Silo.ipa", options[:ipa]
+    assert_equal "build/tvos/Auger.ipa", options[:ipa]
     assert_nil options[:changelog]
     assert_nil options[:groups]
     assert_equal false, options[:distribute_external]
@@ -153,51 +152,14 @@ class FastlaneReleaseTest < Minitest::Test
     assert_includes action_options(:build_app)[:xcargs], "CURRENT_PROJECT_VERSION=42 "
   end
 
-  def test_macos_upload_signs_and_sends_a_pkg
-    ENV["SILO_DEFER_TESTFLIGHT_DISTRIBUTION"] = "true"
-    @lane.run_lane(:beta_macos)
-    match = action_options(:match)
-    assert_equal "macos", match[:platform]
-    assert_equal ["org.siloserver.silo"], match[:app_identifier]
-    assert_equal ["mac_installer_distribution"], match[:additional_cert_types]
-    assert_equal ["SiloMac"], action_options(:update_code_signing_settings)[:targets]
-    build = action_options(:build_app)
-    assert_equal "SiloMac", build[:scheme]
-    assert_equal "generic/platform=macOS", build[:destination]
-    assert_equal "build/macos/Silo.xcarchive", build[:archive_path]
-    assert_equal({ "org.siloserver.silo" => "app-profile" }, build[:export_options][:provisioningProfiles])
-    validator = @lane.actions.find { |action, args| action == :sh && args[0] == "python3" }.last
-    assert validator[2].end_with?("build/macos/Silo.xcarchive/Products/Applications/Silo.app")
-    upload = action_options(:testflight)
-    assert_equal "osx", upload[:app_platform]
-    assert_equal "build/macos/Silo.pkg", upload[:pkg]
-    refute upload.key?(:ipa)
-  end
-
-  def test_match_can_rewrite_the_macos_certificate_types_in_place
-    # match's portal lookup rewrites additional_cert_types with map!.
-    lane = @lane
-    @lane.define_singleton_method(:match) do |**options|
-      options[:additional_cert_types]&.map!(&:upcase)
-      lane.actions << [:match, options]
-    end
-    @lane.run_lane(:sync_signing)
-    ENV["SILO_DEFER_TESTFLIGHT_DISTRIBUTION"] = "true"
-    @lane.run_lane(:beta_macos)
-    macos = @lane.actions.select { |action, options| action == :match && options[:platform] == "macos" }
-    assert_equal 2, macos.length
-    macos.each { |_, options| assert_equal ["MAC_INSTALLER_DISTRIBUTION"], options[:additional_cert_types] }
-    assert_equal ["mac_installer_distribution"], @lane.singleton_class::TESTFLIGHT_PLATFORMS[:macos][:match_cert_types]
-  end
-
-  def test_ios_and_tvos_uploads_keep_their_ipa_names
+  def test_tvos_upload_uses_auger_ipa_name
     ENV["SILO_DEFER_TESTFLIGHT_DISTRIBUTION"] = "true"
     @lane.run_lane(:beta_tvos)
-    assert_equal "build/tvos/SiloTV.ipa", action_options(:testflight)[:ipa]
+    assert_equal "build/tvos/Auger.ipa", action_options(:testflight)[:ipa]
     assert_nil action_options(:match)[:additional_cert_types]
   end
 
-  def test_next_build_number_covers_every_platform
+  def test_next_build_number_covers_tvos
     Dir.mktmpdir do |dir|
       ENV["BUILD_NUMBERS_FILE"] = File.join(dir, "build_numbers.env")
       @lane.run_lane(:next_build_number)
@@ -206,18 +168,18 @@ class FastlaneReleaseTest < Minitest::Test
       ENV.delete("BUILD_NUMBERS_FILE")
     end
     platforms = @lane.actions.select { |action, _| action == :latest_build }.map { |_, options| options[:platform] }
-    assert_equal %w[ios appletvos osx], platforms
+    assert_equal %w[appletvos], platforms
   end
 
-  def test_ios_distribution_waits_for_and_verifies_only_the_pinned_build
-    @lane.run_lane(:distribute_ios)
-    assert_distribution_options("ios")
+  def test_tvos_distribution_waits_for_and_verifies_only_the_pinned_build
+    @lane.run_lane(:distribute_tvos)
+    assert_distribution_options("appletvos")
     assert_equal [:api_key], @lane.actions.map(&:first)
     wait = Spaceship::ConnectAPI.calls.find { |call| call.first == :wait }.last
     assert_equal "app-1", wait[:app_id]
     assert_equal "1.4.0", wait[:app_version]
     assert_equal "7", wait[:build_version]
-    assert_equal "ios", wait[:platform]
+    assert_equal "appletvos", wait[:platform]
     assert_equal 2400, wait[:timeout_duration]
     assert_equal false, wait[:select_latest]
     assert_equal false, wait[:return_when_build_appears]
@@ -228,27 +190,10 @@ class FastlaneReleaseTest < Minitest::Test
     assert_includes Spaceship::ConnectAPI.calls, [:group_builds, "group-1"]
   end
 
-  def test_tvos_distribution_uses_its_own_platform_sequence
-    @build.platform = "TV_OS"
-    @lane.run_lane(:distribute_tvos)
-    assert_distribution_options("appletvos")
-    wait = Spaceship::ConnectAPI.calls.find { |call| call.first == :wait }.last
-    assert_equal "appletvos", wait[:platform]
-  end
-
-  def test_macos_distribution_uses_its_own_platform_sequence
-    @build.platform = "MAC_OS"
-    @lane.run_lane(:distribute_macos)
-    assert_distribution_options("osx")
-    assert_equal [:api_key], @lane.actions.map(&:first)
-    wait = Spaceship::ConnectAPI.calls.find { |call| call.first == :wait }.last
-    assert_equal "osx", wait[:platform]
-  end
-
   def test_distribution_hooks_do_not_access_keychains_even_on_macos_ci
     @lane.test_ci = true
     FastlaneCore::Helper.test_mac = true
-    @lane.run_lane(:distribute_ios)
+    @lane.run_lane(:distribute_tvos)
     assert_nil ENV["FL_ORIG_DEFAULT_KC"]
     assert_nil ENV["FL_ORIG_KC_LIST"]
     assert_equal [:api_key], @lane.actions.map(&:first)
@@ -258,7 +203,7 @@ class FastlaneReleaseTest < Minitest::Test
     @lane.test_ci = true
     FastlaneCore::Helper.test_mac = true
     @lane.api_key_failure = ArgumentError.new("test API key failure")
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     assert_equal [:api_key], @lane.actions.map(&:first)
     assert_nil ENV["FL_ORIG_DEFAULT_KC"]
     assert_nil ENV["FL_ORIG_KC_LIST"]
@@ -270,7 +215,7 @@ class FastlaneReleaseTest < Minitest::Test
     ENV.delete("SILO_RELEASE_SOURCE_URL")
     @group.name = "Internal QA"
     @group.is_internal_group = true
-    @lane.run_lane(:distribute_ios)
+    @lane.run_lane(:distribute_tvos)
     options = distribution_options
     assert_equal ["group-1"], options[:groups]
     assert_equal "Test release", options[:changelog]
@@ -281,20 +226,20 @@ class FastlaneReleaseTest < Minitest::Test
   def test_external_notification_preference_is_preserved
     ENV["TESTFLIGHT_NOTIFY_EXTERNAL_TESTERS"] = "false"
     @build.build_beta_detail.auto_notify_enabled = false
-    @lane.run_lane(:distribute_ios)
+    @lane.run_lane(:distribute_tvos)
     assert_equal false, distribution_options[:notify_external_testers]
   end
 
   def test_missing_or_invalid_build_and_version_fail_before_actions
     [nil, "", "0", "000", "-1", "7 CURRENT_PROJECT_VERSION=8", "7$(id)"].each do |value|
       ENV["BUILD_NUMBER"] = value
-      assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+      assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
       assert_empty @lane.actions
     end
     ENV["BUILD_NUMBER"] = "7"
     [nil, "", "1", "1.4.0$(id)", "1.4.0 CURRENT_PROJECT_VERSION=8"].each do |value|
       ENV["MARKETING_VERSION"] = value
-      assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+      assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
       assert_empty @lane.actions
     end
   end
@@ -302,78 +247,78 @@ class FastlaneReleaseTest < Minitest::Test
   def test_deferred_upload_requires_pinned_version_and_build_before_actions
     ENV["SILO_DEFER_TESTFLIGHT_DISTRIBUTION"] = "true"
     ENV.delete("BUILD_NUMBER")
-    assert_raises(ArgumentError) { @lane.run_lane(:beta_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:beta_tvos) }
     assert_empty @lane.actions
     ENV["BUILD_NUMBER"] = "7"
     ENV.delete("MARKETING_VERSION")
-    assert_raises(ArgumentError) { @lane.run_lane(:beta_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:beta_tvos) }
     assert_empty @lane.actions
   end
 
   def test_missing_external_groups_or_source_fail_before_actions
     ENV["TESTFLIGHT_EXTERNAL_GROUPS"] = " "
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     assert_empty @lane.actions
     ENV["TESTFLIGHT_EXTERNAL_GROUPS"] = "Public Beta"
     ENV.delete("SILO_RELEASE_SOURCE_URL")
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     assert_empty @lane.actions
     ENV["SILO_RELEASE_SOURCE_URL"] = "https://example.com/source.tar.gz"
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     assert_empty @lane.actions
   end
 
   def test_missing_ambiguous_or_wrong_type_groups_fail_before_distribution
     @group.name = "Different group"
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     refute Spaceship::ConnectAPI.calls.any? { |call| call.first == :distribute }
     @group.name = "Public Beta"
     Spaceship::ConnectAPI.test_app.groups << TestGroup.new("other", "Public Beta", false, [])
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     refute Spaceship::ConnectAPI.calls.any? { |call| call.first == :distribute }
     Spaceship::ConnectAPI.test_app.groups.pop
     @group.is_internal_group = true
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     refute Spaceship::ConnectAPI.calls.any? { |call| call.first == :distribute }
   end
 
   def test_group_can_be_selected_by_id
     ENV["TESTFLIGHT_EXTERNAL_GROUPS"] = @group.id
-    @lane.run_lane(:distribute_ios)
+    @lane.run_lane(:distribute_tvos)
     assert_equal [@group.id], distribution_options[:groups]
   end
 
   def test_processing_timeout_propagates_without_claiming_distribution
     Spaceship::ConnectAPI.test_wait_failure = RuntimeError.new("processing timeout")
-    assert_raises(RuntimeError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(RuntimeError) { @lane.run_lane(:distribute_tvos) }
     refute Spaceship::ConnectAPI.calls.any? { |call| call.first == :distribute }
   end
 
   def test_invalid_or_expired_build_does_not_pass_verification
     ["FAILED", "INVALID", "PROCESSING"].each do |state|
       @build.processing_state = state
-      assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+      assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     end
     @build.processing_state = "VALID"
     @build.expired = true
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     refute Spaceship::ConnectAPI.calls.any? { |call| call.first == :distribute }
   end
 
   def test_mismatched_or_ambiguous_build_does_not_pass_verification
     @build.version = "8"
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     @build.version = "7"
-    @build.platform = "TV_OS"
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
     @build.platform = "IOS"
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
+    @build.platform = "TV_OS"
     @build.app_version = "1.5.0"
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     @build.app_version = "1.4.0"
     duplicate = @build.dup
     duplicate.id = "other-build"
     Spaceship::ConnectAPI.test_builds = [@build, duplicate]
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     refute Spaceship::ConnectAPI.calls.any? { |call| call.first == :distribute }
   end
 
@@ -382,7 +327,7 @@ class FastlaneReleaseTest < Minitest::Test
       ENV["MARKETING_VERSION"] = requested
       ENV["BUILD_NUMBER"] = "007"
       @build.app_version = canonical
-      @lane.run_lane(:distribute_ios)
+      @lane.run_lane(:distribute_tvos)
       assert_equal requested, distribution_options[:app_version]
       assert_same @build, Spaceship::ConnectAPI.calls.reverse.find { |call| call.first == :distribute }.last
     end
@@ -391,17 +336,17 @@ class FastlaneReleaseTest < Minitest::Test
   def test_wrong_refreshed_build_id_fails_verification
     Spaceship::ConnectAPI.test_refreshed_build = @build.dup
     Spaceship::ConnectAPI.test_refreshed_build.id = "different-build"
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
   end
 
   def test_missing_group_membership_or_notification_setting_fails_verification
     @group.builds = []
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     @group.builds = [@build]
     @build.build_beta_detail.auto_notify_enabled = false
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
     @build.build_beta_detail = nil
-    assert_raises(ArgumentError) { @lane.run_lane(:distribute_ios) }
+    assert_raises(ArgumentError) { @lane.run_lane(:distribute_tvos) }
   end
 
   private
@@ -416,7 +361,7 @@ class FastlaneReleaseTest < Minitest::Test
 
   def assert_distribution_options(platform)
     options = distribution_options
-    assert_equal "org.siloserver.silo", options[:app_identifier]
+    assert_equal "com.artic0din.auger", options[:app_identifier]
     assert_equal platform, options[:app_platform]
     assert_equal "1.4.0", options[:app_version]
     assert_equal "7", options[:build_number]

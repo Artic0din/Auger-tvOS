@@ -53,16 +53,3 @@ jobs:
         run: python3 scripts/ci/check-catalog-text.test.py
       - name: Block hardcoded text in paths that use the catalog
         run: python3 scripts/ci/check-catalog-text.py
-      # The committed catalog must be exactly what the pinned silo-translations
-      # release generates. A local pin (no release exists yet) can only be
-      # checked against a checkout; see docs/i18n.md.
-      - name: Check the generated string catalog
-        run: |
-          version=$(sed -n 's/^version=//p' .silo-translations)
-          case $version in
-            local-*)
-              echo "::notice::.silo-translations pins a local build ($version); check it with scripts/sync-translations --local <checkout> (docs/i18n.md)." ;;
-            *)
-              scripts/sync-translations
-              git diff --exit-code -- iosApp/iosApp/Localizable.xcstrings iosApp/InfoPlist .silo-translations .silo-translations-files ;;
-          esac
