@@ -26,9 +26,12 @@ IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 # `.init(initialValue:)`, `.init(wrappedValue:)` and `.init()` (add a label here if
 # the app ever extends State with its own initializer); a local
 # `let _name = ...` declares a new value and is not the property's storage.
+# Generic arguments may span lines but never hold `=`, `;` or braces, so a
+# `State < x` comparison stops at the next statement instead of reaching a
+# later `>`.
 INIT_ASSIGNMENT = re.compile(
     r"(?<![\w.])(?<!let )(?<!var )(?:self\s*\.\s*)?_(\w+)\s*=\s*"
-    r"(?:State\s*(?:<[^;{}]*?>)?\s*\(|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
+    r"(?:State\s*(?:<[^;{}=]*?>)?\s*\(|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
 )
 
 # `@State`, then attributes and modifiers, then `var name`. Each repeated token

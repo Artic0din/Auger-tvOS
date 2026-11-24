@@ -118,6 +118,21 @@ class ScanSourceTests(unittest.TestCase):
         source = "struct V {\n    @State private var flag = false // state-init-ignore: B owns it" + assign
         self.assertEqual(guard.scan_source(source), [])
 
+    def test_comparisons_with_state_are_not_a_generic_initializer(self) -> None:
+        source = (
+            "struct V {\n    @State private var flag = false\n    @State private var count = 0\n"
+            "    init(State: Int) {\n        _flag = State < 2\n        _count = .init(initialValue: 3)\n"
+            "        let marker = 3 > (2)\n    }\n}"
+        )
+        self.assertEqual(guard.scan_source(source), [(3, "count")])
+
+    def test_many_unclosed_generics_scan_quickly(self) -> None:
+        body = "    _flag = State < 2\n" * 2000
+        source = "struct V {\n    @State private var flag = false\n    init(State: Int) {\n" + body + "    }\n}"
+        start = time.monotonic()
+        guard.scan_source(source)
+        self.assertLess(time.monotonic() - start, 0.1)
+
     def test_long_comment_scans_quickly(self) -> None:
         source = "@State " + "a " * 200 + "\n" + "@State /*" + " x" * 5000 + "*/ var y = 1\n"
         start = time.monotonic()
