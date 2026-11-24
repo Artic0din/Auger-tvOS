@@ -126,6 +126,23 @@ class ScanSourceTests(unittest.TestCase):
         )
         self.assertEqual(guard.scan_source(source), [(3, "count")])
 
+    def test_a_later_greater_than_does_not_close_a_comparison(self) -> None:
+        for statements in [
+            "_flag = State < 2\n        print(3 > (2))",
+            "_flag = State < x\n        foo > (y)",
+        ]:
+            source = (
+                "struct V {\n    @State private var flag = false\n    init(State: Int, x: Int, y: Int) {\n"
+                "        " + statements + "\n    }\n}"
+            )
+            self.assertEqual(guard.scan_source(source), [], statements)
+
+    def test_long_whitespace_after_state_scans_quickly(self) -> None:
+        source = "@State private var flag = false\ninit() { _flag = State" + " " * 16000 + "< 2 }"
+        start = time.monotonic()
+        guard.scan_source(source)
+        self.assertLess(time.monotonic() - start, 0.05)
+
     def test_many_unclosed_generics_scan_quickly(self) -> None:
         body = "    _flag = State < 2\n" * 2000
         source = "struct V {\n    @State private var flag = false\n    init(State: Int) {\n" + body + "    }\n}"

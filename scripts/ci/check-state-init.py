@@ -26,13 +26,64 @@ IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 # `.init(initialValue:)`, `.init(wrappedValue:)` and `.init()` (add a label here if
 # the app ever extends State with its own initializer); a local
 # `let _name = ...` declares a new value and is not the property's storage.
-# Generic arguments may span lines but never hold `=`, `;` or braces, so a
-# `State < x` comparison stops at the next statement instead of reaching a
-# later `>`.
+# After `State`, `calls_state` decides whether it is called.
 INIT_ASSIGNMENT = re.compile(
     r"(?<![\w.])(?<!let )(?<!var )(?:self\s*\.\s*)?_(\w+)\s*=\s*"
-    r"(?:State\s*(?:<[^;{}=]*?>)?\s*\(|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
+    r"(?:(State)\b|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
 )
+
+_TYPE_KEYWORDS = {"any", "some", "inout", "borrowing", "consuming", "sending", "each", "repeat"}
+_CLOSERS = {"<": ">", "[": "]", "(": ")"}
+
+
+def _skip_space(code: str, i: int) -> int:
+    while i < len(code) and code[i].isspace():
+        i += 1
+    return i
+
+
+def calls_state(code: str, i: int) -> bool:
+    """Whether the `State` ending at `i` is called, directly or as `State<T>(`.
+
+    Generic arguments are read as a type, which may span lines: brackets nest
+    and match, two names sit side by side only after a keyword such as `some`,
+    and nothing else but `.,:?!&@` and `->` appears. A `State < x` comparison
+    breaks one of those rules before it can reach a later `> (`.
+    """
+    n = len(code)
+    i = _skip_space(code, i)
+    if code.startswith("(", i):
+        return True
+    if not code.startswith("<", i):
+        return False
+    stack, previous_name, i = ["<"], None, i + 1
+    while i < n and stack:
+        ch = code[i]
+        if ch.isspace():
+            i += 1
+            continue
+        if ch.isalpha() or ch == "_":
+            j = i
+            while j < n and (code[j].isalnum() or code[j] == "_"):
+                j += 1
+            if previous_name is not None and previous_name not in _TYPE_KEYWORDS:
+                return False
+            previous_name, i = code[i:j], j
+            continue
+        previous_name = None
+        if code.startswith("->", i):
+            i += 2
+            continue
+        if ch in _CLOSERS:
+            stack.append(ch)
+        elif ch in ">])":
+            if _CLOSERS[stack.pop()] != ch:
+                return False
+        elif ch not in ".,:?!&@":
+            return False
+        i += 1
+    return not stack and code.startswith("(", _skip_space(code, i))
+
 
 # `@State`, then attributes and modifiers, then `var name`. Each repeated token
 # ends in mandatory whitespace, so the match never backtracks into ambiguous
@@ -186,7 +237,9 @@ def strip_comments_and_strings(source: str) -> tuple[str, dict[int, list[str]]]:
 def scan_source(source: str) -> list[tuple[int, str]]:
     """Returns (line, name) for each defaulted @State the same file also sets in init."""
     code, line_comments = strip_comments_and_strings(source)
-    assigned = set(INIT_ASSIGNMENT.findall(code))
+    assigned = {
+        m.group(1) for m in INIT_ASSIGNMENT.finditer(code) if not m.group(2) or calls_state(code, m.end())
+    }
     hits = []
     for match in STATE_DECLARATION.finditer(code):
         name = match.group(1)
