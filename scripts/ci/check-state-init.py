@@ -26,15 +26,24 @@ IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 # `_name = State(...)`, `State<T>(...)`, or State's own contextual
 # `.init(initialValue:)`, `.init(wrappedValue:)` and `.init()` (add a label here if
 # the app ever extends State with its own initializer); a local
-# `let _name = ...` declares a new value and is not the property's storage.
+# `let _name = ...` declares a new value and is not the property's storage
+# (`declares_local`, which allows any gap, since comments are blanked).
 # After `State`, `calls_state` decides whether it is called.
 INIT_ASSIGNMENT = re.compile(
-    r"(?<![\w.])(?<!let )(?<!var )(?:self\s*\.\s*)?_(\w+)\s*=\s*"
+    r"(?<![\w.])(?:self\s*\.\s*)?_(\w+)\s*=\s*"
     r"(?:(State)\b|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
 )
 
 _TYPE_KEYWORDS = {"async", "throws", "any", "some", "inout", "borrowing", "consuming", "sending", "each", "repeat"}
 _CLOSERS = {"<": ">", "[": "]", "(": ")"}
+
+
+def declares_local(code: str, start: int) -> bool:
+    """Whether the assignment at `start` follows `let` or `var`, so declares a local."""
+    i = start
+    while i > 0 and code[i - 1].isspace():
+        i -= 1
+    return code[max(0, i - 3) : i] in ("let", "var") and (i < 4 or not (code[i - 4].isalnum() or code[i - 4] == "_"))
 
 
 def _skip_space(code: str, i: int) -> int:
@@ -91,7 +100,7 @@ def calls_state(code: str, i: int) -> bool:
 # ends in mandatory whitespace, so the match never backtracks into ambiguous
 # splits. `has_default` then reads the type annotation for a default.
 _MODIFIER = r"(?:@\w+(?:\([^()]*\))?|private|fileprivate|internal|public|package|open|static|nonisolated)"
-STATE_DECLARATION = re.compile(r"@State\b(?:\([^()]*\))?\s+(?:" + _MODIFIER + r"(?:\(\w+\))?\s+)*var\s+(\w+)\b")
+STATE_DECLARATION = re.compile(r"@State\b(?:\([^()]*\))?\s+(?:" + _MODIFIER + r"(?:\(\w+\))?\s+)*var\s+`?(\w+)\b`?")
 
 
 def has_default(code: str, i: int) -> bool:
@@ -241,7 +250,9 @@ def scan_source(source: str) -> list[tuple[int, str]]:
     """Returns (line, name) for each defaulted @State the same file also sets in init."""
     code, line_comments = strip_comments_and_strings(source)
     assigned = {
-        m.group(1) for m in INIT_ASSIGNMENT.finditer(code) if not m.group(2) or calls_state(code, m.end())
+        m.group(1)
+        for m in INIT_ASSIGNMENT.finditer(code)
+        if not declares_local(code, m.start()) and (not m.group(2) or calls_state(code, m.end()))
     }
     hits = []
     for match in STATE_DECLARATION.finditer(code):
