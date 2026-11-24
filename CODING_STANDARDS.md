@@ -9,7 +9,7 @@ Report each violation as `file:line`, the rule, and the fix.
 - **Independent expectations.**
   A test's expected result comes from outside the code under test: a literal, a fixture, or a direct observation of behaviour such as `XCTAssertTrue(didFinish)`.
   A test whose only check compares the new code with another path computing the same answer (the old implementation, or the same helper called twice) passes whenever both are wrong, so it protects nothing.
-  An equivalence check between two paths is fine beside at least one independent expectation.
+  An equivalence check between two paths is fine when the same test also checks that behaviour independently on at least one path; an unrelated assertion such as `XCTAssertNotNil(input)` doesn't count.
 - **Shown failing.**
   When a bug-fix PR doesn't say how its test failed before the fix, ask the author for that run.
 
