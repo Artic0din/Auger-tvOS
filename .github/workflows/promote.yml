@@ -40,11 +40,11 @@ jobs:
           version="$(sed -n 's/^version=//p' build.txt)"
           build="$(sed -n 's/^build=//p' build.txt)"
           release_tag="$(sed -n 's/^release_tag=//p' build.txt)"
-          # One store release covers iOS and tvOS, so promote only a build
-          # that reached testers on both. macOS may also be listed.
+          # Promote only a build that reached tvOS testers. Builds from before
+          # this fork went tvOS-only also list iOS and macOS.
           if [[ "$(gh release view "$BETA_TAG" --json isPrerelease --jq .isPrerelease 2>/dev/null)" != "true" ]] ||
-             ! gh release view "$BETA_TAG" --json body --jq .body | grep -Eq '^TestFlight: distributed .* on iOS(, tvOS, and macOS| and tvOS)\.$'; then
-            echo "::error::$BETA_TAG didn't reach TestFlight testers on both iOS and tvOS, so it can't be promoted."
+             ! gh release view "$BETA_TAG" --json body --jq .body | grep -Eq '^TestFlight: distributed .* on (iOS, |iOS and )?tvOS(, and macOS)?\.$'; then
+            echo "::error::$BETA_TAG didn't reach TestFlight testers on tvOS, so it can't be promoted."
             exit 1
           fi
           if gh release view "$release_tag" >/dev/null 2>&1; then
@@ -74,7 +74,7 @@ jobs:
           {
             echo "Drafted $release_tag."
             echo
-            echo "1. In App Store Connect, add build $build to the iOS and tvOS $version versions and submit them for review."
+            echo "1. In App Store Connect, add build $build to the tvOS $version version and submit it for review."
             echo "2. Start the next version now: run TestFlight Release with bump: patch or minor. Its first build's Beta App Review then runs alongside App Review."
             echo "3. Edit the draft notes on GitHub, and publish the release when Apple approves $version."
           } >> "$GITHUB_STEP_SUMMARY"
