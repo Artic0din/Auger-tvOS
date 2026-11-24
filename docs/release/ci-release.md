@@ -5,15 +5,14 @@ build number.
 
 ## TestFlight build
 
-Actions → **TestFlight Release** → Run workflow, leaving `bump` on `build` and
-`platform` on `all` (or pick `ios` / `tvos` / `macos`). The very first run has no
-earlier tag to continue from: enter `1.0.0` as `version`.
+Actions → **TestFlight Release** → Run workflow, leaving `bump` on `build`.
+The very first run has no earlier tag to continue from: enter `1.0.0` as
+`version`. Releases build only the Apple TV app; this fork dropped iPhone and
+Mac.
 
 The run tags the commit `v1.0.0-beta.66`, publishes a GitHub prerelease with the
 pull requests merged since the previous build (grouped by label), and uploads
-iOS, tvOS, and macOS `1.0.0 (66)` to TestFlight's external groups. The Mac app
-shares the `org.siloserver.silo` App Store app with iPhone and Apple TV
-(Universal Purchase), so the same groups get all three.
+tvOS `1.0.0 (66)` to TestFlight's external groups.
 
 TestFlight's "What to Test" is Claude's short summary of those pull request
 titles: what's new, and where to test. The run sends Claude only the section
@@ -34,16 +33,15 @@ the prerelease. If a run fails before that, use **Re-run failed jobs**: it keeps
 the same build number. To abandon the build instead, delete its GitHub release
 and tag. The next run refuses to start while the newest prerelease lacks that
 line, so its notes don't skip changes no tester got. Promote only accepts a
-build distributed on both iOS and tvOS, because one App Store release covers
-both. macOS is TestFlight-only for now: Promote neither requires nor submits it.
+build distributed on tvOS.
 
 ## Store release
 
 1. Actions → **Promote to App Store** → enter the TestFlight build to ship, such
    as `v1.0.0-beta.66`. It drafts the GitHub release `v1.0.0` on that build's
    commit, with notes since the last App Store release. Nothing is rebuilt.
-2. In App Store Connect, add that build to the iOS and tvOS versions and submit
-   them for review.
+2. In App Store Connect, add that build to the tvOS version and submit it for
+   review.
 3. Start the next version right away: run TestFlight Release with `bump: patch`
    (fixes only) or `bump: minor` (new features). Its first build goes through
    Beta App Review while App Review checks the submitted version, so external
@@ -66,8 +64,9 @@ started, `bump: build` continues that one. Promote the new build.
 - `1.0.0` is the marketing version. It stays the same for every TestFlight build
   until it is promoted to the App Store. The first build of each version goes
   through Beta App Review; later builds of the same version usually don't.
-- `66` is the build number, shared by iOS, tvOS, and macOS: one more than the
-  latest TestFlight build on any of them (and any build already tagged).
+- `66` is the build number: one more than the latest TestFlight build on any
+  platform, including the iOS and macOS builds shipped before this fork (and any
+  build already tagged).
 - Tags: `vX.Y.Z-beta.B` for TestFlight builds (GitHub prereleases) and `vX.Y.Z`
   for App Store releases. Earlier manual runs published `source-<commit>`
   releases instead; those stay, because shipped builds link their archives.
