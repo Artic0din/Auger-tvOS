@@ -42,6 +42,8 @@ xcodegen generate --quiet
 derived="${SILO_DERIVED_DATA:-$HOME/Library/Developer/Xcode/DerivedData/silo-$scheme}"
 # Use the committed Package.resolved as the release lanes do, so a stale
 # lockfile fails here rather than at release.
+# After changing a package pin in project.yml, refresh and commit the lockfile:
+#   (cd iosApp && xcodebuild -resolvePackageDependencies -project Silo.xcodeproj -scheme SiloTV)
 args=(-project Silo.xcodeproj -scheme "$scheme" -derivedDataPath "$derived"
       -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile)
 
