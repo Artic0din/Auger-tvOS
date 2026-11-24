@@ -143,28 +143,28 @@ class ScanSourceTests(unittest.TestCase):
 
     def test_long_whitespace_after_state_scans_quickly(self) -> None:
         source = "@State private var flag = false\ninit() { _flag = State" + " " * 16000 + "< 2 }"
-        start = time.monotonic()
+        start = time.process_time()
         guard.scan_source(source)
-        self.assertLess(time.monotonic() - start, 0.05)
+        self.assertLess(time.process_time() - start, 0.05)
 
     def test_many_unclosed_generics_scan_quickly(self) -> None:
         body = "    _flag = State < 2\n" * 2000
         source = "struct V {\n    @State private var flag = false\n    init(State: Int) {\n" + body + "    }\n}"
-        start = time.monotonic()
+        start = time.process_time()
         guard.scan_source(source)
-        self.assertLess(time.monotonic() - start, 0.1)
+        self.assertLess(time.process_time() - start, 0.1)
 
     def test_long_comment_scans_quickly(self) -> None:
         source = "@State " + "a " * 200 + "\n" + "@State /*" + " x" * 5000 + "*/ var y = 1\n"
-        start = time.monotonic()
+        start = time.process_time()
         guard.scan_source(source)
-        self.assertLess(time.monotonic() - start, 1.0)
+        self.assertLess(time.process_time() - start, 1.0)
 
     def test_many_line_comments_scan_quickly(self) -> None:
         source = "// note\n" * 20000 + "@State private var flag = false\n"
-        start = time.monotonic()
+        start = time.process_time()
         guard.scan_source(source)
-        self.assertLess(time.monotonic() - start, 0.1)
+        self.assertLess(time.process_time() - start, 0.1)
 
     def test_reports_the_declaration_line(self) -> None:
         source = "struct V {\n\n    @State private var flag = false\n    init() { _flag = State(initialValue: true) }\n}"
