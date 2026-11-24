@@ -225,6 +225,27 @@ entitlements. Preserve that local signature for authenticated runs: Silo's token
 Keychain, and installing a `CODE_SIGNING_ALLOWED=NO` product removes the entitlement needed to
 persist them across process launches.
 
+### On the Mac itself
+
+Working directly on a Mac, `scripts/apple-test.sh` does the whole test loop:
+
+```bash
+scripts/apple-test.sh Silo                                  # every iOS test
+scripts/apple-test.sh SiloTV TVLibraryGridViewModelTests    # one tvOS class
+scripts/apple-test.sh SiloMac                               # compile-only Mac build, no classes
+```
+
+It runs `xcodegen generate` first, so a branch switch or a new test file never runs against a
+stale project. It reuses a booted iPhone or Apple TV simulator, else picks an available one
+(`SILO_SIM_ID` overrides), keeps one DerivedData folder per scheme, runs tests in the US region
+their expected dates assume, and fails any test that runs longer than 60 seconds
+(`SILO_TEST_TIMEOUT`) instead of letting it hang. `SILO_SKIP_TESTS` takes space-separated
+`Class` or `Class/testMethod` entries to skip.
+
+It signs simulator test builds locally, for the Keychain reason in
+[Simulator — the default loop](#simulator--the-default-loop); an unsigned test build fails every
+Keychain-backed test with `keychain_read_failed(status=-34018)`.
+
 ### Compile-only check without signing
 
 Fastest way to confirm a platform still builds, and it sidesteps the keychain entirely:
