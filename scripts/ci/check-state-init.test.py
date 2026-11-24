@@ -31,6 +31,8 @@ class ScanSourceTests(unittest.TestCase):
             "@State /* note */ private var flag = false",
             "@State private var flag: [\n        String: Bool\n    ] = [:]",
             "@State private var flag: (Int) -> Void = { _ in }",
+            "@State private var flag:\n        Bool = false",
+            "@State private var flag: Bool\n        // seeded in init\n\n        = false",
         ]:
             source = f"struct V: View {{\n    {declaration}\n    init() {{ _flag = State(initialValue: true) }}\n}}"
             self.assertEqual([name for _, name in guard.scan_source(source)], ["flag"], declaration)
@@ -42,6 +44,7 @@ class ScanSourceTests(unittest.TestCase):
             "_flag = State<Bool>(initialValue: true)",
             "_flag = State<[String: Set<Int>]>(initialValue: [:])",
             "_flag = State<[String: Array<Set<Int>>]>(initialValue: [:])",
+            "_flag = State<[\n            String: Array<Set<Int>>\n        ]>(initialValue: [:])",
             "self._flag = .init(initialValue: true)",
             "_flag = .init(wrappedValue: true)",
             "_flag = .init()",

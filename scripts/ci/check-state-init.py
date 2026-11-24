@@ -28,7 +28,7 @@ IGNORE = re.compile(r"^//\s*state-init-ignore:\s*\S")
 # `let _name = ...` declares a new value and is not the property's storage.
 INIT_ASSIGNMENT = re.compile(
     r"(?<![\w.])(?<!let )(?<!var )(?:self\s*\.\s*)?_(\w+)\s*=\s*"
-    r"(?:State\s*(?:<[^\n]*?>)?\s*\(|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
+    r"(?:State\s*(?:<[^;{}]*?>)?\s*\(|\.\s*init\s*\(\s*(?:initialValue\s*:|wrappedValue\s*:|\)))"
 )
 
 # `@State`, then attributes and modifiers, then `var name`. Each repeated token
@@ -41,11 +41,12 @@ STATE_DECLARATION = re.compile(r"@State\b(?:\([^()]*\))?\s+(?:" + _MODIFIER + r"
 def has_default(code: str, i: int) -> bool:
     """Whether the declaration from offset `i` (after its name) has a default.
 
-    Brackets in the type annotation may span lines. Outside them, a `{` or `;`
-    ends the declaration without a default, and so does a line break unless the
-    next line starts with `=`.
+    Brackets in the type annotation may span lines, and so may the gap after
+    `:`. Outside them, a `{` or `;` ends the declaration without a default, and
+    so does a line break unless the next non-blank line starts with `=`
+    (comments are already blanked).
     """
-    depth, n = 0, len(code)
+    depth, n, last = 0, len(code), ""
     while i < n:
         ch = code[i]
         if code.startswith("->", i):
@@ -61,9 +62,14 @@ def has_default(code: str, i: int) -> bool:
             return False
         elif depth <= 0 and ch == "\n":
             j = i + 1
-            while j < n and code[j] in " \t":
+            while j < n and code[j] in " \t\n":
                 j += 1
+            if last == ":":
+                i = j
+                continue
             return code.startswith("=", j) and not code.startswith("==", j)
+        if not ch.isspace():
+            last = ch
         i += 1
     return False
 
