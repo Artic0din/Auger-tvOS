@@ -40,7 +40,10 @@ cd "$root/iosApp"
 xcodegen generate --quiet
 
 derived="${SILO_DERIVED_DATA:-$HOME/Library/Developer/Xcode/DerivedData/silo-$scheme}"
-args=(-project Silo.xcodeproj -scheme "$scheme" -derivedDataPath "$derived")
+# Use the committed Package.resolved as the release lanes do, so a stale
+# lockfile fails here rather than at release.
+args=(-project Silo.xcodeproj -scheme "$scheme" -derivedDataPath "$derived"
+      -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile)
 
 if [[ "$scheme" == SiloMac ]]; then
   # SiloMac has no test bundle, so a compile-only build is the check.
