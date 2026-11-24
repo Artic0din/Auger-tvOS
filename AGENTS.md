@@ -121,16 +121,8 @@ follow-up work.
 
 - Keep one concern per pull request. Split changes that solve independent
   problems or can be reviewed and shipped separately.
-- A feature (`feat`) pull request from someone without triage or write access
-  must link an issue in the same repository labeled `accepted`; the
-  contribution-gate workflow closes it otherwise. Pull requests from people who
-  have never had one merged in a Silo repository are closed the same way, even
-  when a maintainer asked for them; the maintainer then reopens them. For
-  anyone without triage or write access, the gate also closes drafts, and the
-  evidence-deadline workflow closes a pull request whose `Evidence` check still
-  asks for evidence 24 hours after it opens, so open it ready for review and
-  publish evidence right away. Feature ideas go in Discussions → Ideas, not
-  issues.
+- Pull requests are welcome when a maintainer asks for one; bugs and feature
+  requests both go in GitHub Issues.
 - Every pull request must include evidence. One that changes what a user sees
   shows the change, as
   [Show visible changes](CONTRIBUTING.md#show-visible-changes) defines. That

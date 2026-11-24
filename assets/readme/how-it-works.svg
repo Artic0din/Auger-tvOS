@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380" role="img" aria-labelledby="how-title how-desc">
+  <title id="how-title">How Auger works with your Silo server</title>
+  <desc id="how-desc">Auger on Apple TV talks to your Silo server in three steps. Sign in: confirm on your iPhone or approve a device code, then pick a profile. Browse: libraries, search and details over the /api/v2 interface. Play: the server plans the stream and AetherEngine plays it on the Apple TV.</desc>
+
+  <rect width="1200" height="380" rx="26" fill="#101820"/>
+
+  <g id="tv">
+    <rect x="56" y="56" width="300" height="268" rx="18" fill="#141d27" stroke="#1e2a35" stroke-width="2"/>
+    <g transform="translate(88 92) scale(0.1141)"><defs></defs><g transform="translate(125.000,280.506) scale(1.00000)"><g transform="rotate(90) scale(1,-1)"><path d="M-224.506,-56.000 L224.506,-56.000 A56.000,56.000 0 0 1 224.506,56.000 L-224.506,56.000 A56.000,56.000 0 0 1 -224.506,-56.000 Z" fill="#3A4A5C"></path><g transform="translate(-144.338,0)"><path d="M18.705,-119.000 A12.000,12.000 0 0 1 29.097,-125.000 L101.384,-125.000 A12.000,12.000 0 0 1 111.776,-107.000 L-18.705,119.000 A12.000,12.000 0 0 1 -29.097,125.000 L-101.384,125.000 A12.000,12.000 0 0 1 -111.776,107.000 Z" fill="#0034FB"></path></g><g transform="translate(0.000,0)"><path d="M18.705,-119.000 A12.000,12.000 0 0 1 29.097,-125.000 L101.384,-125.000 A12.000,12.000 0 0 1 111.776,-107.000 L-18.705,119.000 A12.000,12.000 0 0 1 -29.097,125.000 L-101.384,125.000 A12.000,12.000 0 0 1 -111.776,107.000 Z" fill="#F50B4F"></path></g><g transform="translate(144.338,0)"><path d="M18.705,-119.000 A12.000,12.000 0 0 1 29.097,-125.000 L101.384,-125.000 A12.000,12.000 0 0 1 111.776,-107.000 L-18.705,119.000 A12.000,12.000 0 0 1 -29.097,125.000 L-101.384,125.000 A12.000,12.000 0 0 1 -111.776,107.000 Z" fill="#FA7604"></path></g></g></g></g>
+    <text x="88" y="212" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#f1f4f8">Your Apple TV</text>
+    <text x="88" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" fill="#bfc8d3">Auger, a native app</text>
+    <text x="88" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#8b96a5">tvOS 26+ · AetherEngine</text>
+  </g>
+
+  <g id="steps">
+    <g id="step-sign-in">
+      <g transform="translate(400 100) scale(0.16) rotate(90) scale(1 -1)"><path d="M30.705,-119.000 A12.000,12.000 0 0 1 41.097,-125.000 L89.384,-125.000 A12.000,12.000 0 0 1 99.776,-107.000 L-30.705,119.000 A12.000,12.000 0 0 1 -41.097,125.000 L-89.384,125.000 A12.000,12.000 0 0 1 -99.776,107.000 Z" fill="#0034FB"/></g>
+      <text x="440" y="96" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#f1f4f8">Sign in</text>
+      <text x="440" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#bfc8d3">Approve by iPhone or code, pick a profile</text>
+      <path d="M370 136H830" stroke="#2a3745" stroke-width="2"/>
+      <path d="M822 130l8 6l-8 6" fill="none" stroke="#8b96a5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g id="step-browse">
+      <g transform="translate(400 188) scale(0.16) rotate(90) scale(1 -1)"><path d="M30.705,-119.000 A12.000,12.000 0 0 1 41.097,-125.000 L89.384,-125.000 A12.000,12.000 0 0 1 99.776,-107.000 L-30.705,119.000 A12.000,12.000 0 0 1 -41.097,125.000 L-89.384,125.000 A12.000,12.000 0 0 1 -99.776,107.000 Z" fill="#F50B4F"/></g>
+      <text x="440" y="184" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#f1f4f8">Browse</text>
+      <text x="440" y="210" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#bfc8d3">Libraries, search and details over /api/v2</text>
+      <path d="M370 224H830" stroke="#2a3745" stroke-width="2"/>
+      <path d="M822 218l8 6l-8 6" fill="none" stroke="#8b96a5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g id="step-play">
+      <g transform="translate(400 276) scale(0.16) rotate(90) scale(1 -1)"><path d="M30.705,-119.000 A12.000,12.000 0 0 1 41.097,-125.000 L89.384,-125.000 A12.000,12.000 0 0 1 99.776,-107.000 L-30.705,119.000 A12.000,12.000 0 0 1 -41.097,125.000 L-89.384,125.000 A12.000,12.000 0 0 1 -99.776,107.000 Z" fill="#FA7604"/></g>
+      <text x="440" y="272" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#f1f4f8">Play</text>
+      <text x="440" y="298" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#bfc8d3">The server plans it, AetherEngine plays it</text>
+      <path d="M370 312H830" stroke="#2a3745" stroke-width="2"/>
+      <path d="M378 306l-8 6l8 6" fill="none" stroke="#8b96a5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <g id="server">
+    <rect x="844" y="56" width="300" height="268" rx="18" fill="#141d27" stroke="#1e2a35" stroke-width="2"/>
+    <g fill="none" stroke="#8b96a5" stroke-width="2">
+      <rect x="876" y="94" width="64" height="18" rx="5"/>
+      <rect x="876" y="118" width="64" height="18" rx="5"/>
+      <rect x="876" y="142" width="64" height="18" rx="5"/>
+    </g>
+    <g fill="#8b96a5">
+      <circle cx="887" cy="103" r="2.5"/>
+      <circle cx="887" cy="127" r="2.5"/>
+      <circle cx="887" cy="151" r="2.5"/>
+    </g>
+    <text x="876" y="212" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#f1f4f8">Your Silo server</text>
+    <text x="876" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" fill="#bfc8d3">Self-hosted media library</text>
+    <text x="876" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#8b96a5">/api/v2</text>
+  </g>
+</svg>

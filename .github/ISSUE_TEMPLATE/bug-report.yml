@@ -1,5 +1,5 @@
 name: Bug report
-description: Report something broken in the iOS, tvOS, or macOS app
+description: Report something broken in Auger on Apple TV (tvOS)
 title: "[bug] "
 labels: ["bug"]
 body:
@@ -8,9 +8,9 @@ body:
       value: |
         Report behavior you reproduced yourself. Keep what you observed separate from any theory about the cause. Redact credentials, tokens, personal data, server addresses, and private media details, and mark each redaction.
 
-        [Reporting a problem](https://siloserver.org/docs/report-a-problem) explains where to find versions, stats, and diagnostics. Using Claude Code or Codex? The [Silo troubleshooting skill](https://github.com/Silo-Server/silo-troubleshooting-skill) helps you collect the details and drafts this report, then has independent reviewers check it before you post. Problems that also happen in the web app usually come from the server and belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose). Problems in the Android app belong in [silo-android](https://github.com/Silo-Server/silo-android/issues/new/choose).
+        This fork focuses on Apple TV (tvOS). Problems that also happen in the web app usually come from the server and belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose).
 
-        Fabricated or AI-hallucinated reports are an immediate block. Read [CONTRIBUTING.md](https://github.com/Silo-Server/silo-apple/blob/main/CONTRIBUTING.md) first.
+        Read [CONTRIBUTING.md](https://github.com/Artic0din/Auger-tvOS/blob/main/CONTRIBUTING.md) first.
   - type: textarea
     id: what-happened
     attributes:
@@ -32,22 +32,10 @@ body:
       description: What should have happened, and where that expectation comes from.
     validations:
       required: true
-  - type: dropdown
-    id: device-type
-    attributes:
-      label: Device
-      multiple: true
-      options:
-        - "iPhone"
-        - "iPad"
-        - "Apple TV"
-        - "Mac"
-    validations:
-      required: true
   - type: input
     id: device-details
     attributes:
-      label: Device model and OS version
+      label: Apple TV model and tvOS version
       placeholder: Apple TV 4K (3rd generation), tvOS 26.1
     validations:
       required: true
@@ -55,7 +43,7 @@ body:
     id: app-version
     attributes:
       label: App version and build
-      description: "**Settings > About > Version** on iPhone, iPad, and Mac, or **Settings > Server > About > App Version** on Apple TV."
+      description: "**Settings > Server > About > App Version** on Apple TV."
       placeholder: "1.0.0 (42)"
     validations:
       required: true
@@ -64,8 +52,7 @@ body:
     attributes:
       label: Installed from
       options:
-        - "TestFlight"
-        - "Sideloaded IPA from GitHub Releases"
+        - "Sideloaded IPA"
         - "Built from source"
         - "Other"
     validations:
@@ -81,13 +68,7 @@ body:
     id: playback-details
     attributes:
       label: Playback details
-      description: "For playback problems. On iPhone and iPad, the player's **…** button > **Stats** (or **Advanced** for route details). On Apple TV, **Info and options** > **Stats**. On Mac, the options panel > **Playback**. Include the delivery or route, container, video, audio, and dynamic range, plus the subtitle format and your audio setup (TV speakers, soundbar, receiver)."
-  - type: input
-    id: diagnostics-reference
-    attributes:
-      label: Diagnostics report reference
-      description: "In the app, open **Settings > Support > Diagnostics** (Apple TV: **Settings > Diagnostics**), set **Send Reports To** to **Silo Diagnostics**, choose **Send Diagnostics Now**, and copy the ID from **Sent History**. Not available in the Mac app."
-      placeholder: SILO-XXXXXXXX
+      description: "For playback problems: on Apple TV open **Info and options** > **Stats**. Include the delivery or route, container, video, audio, and dynamic range, plus the subtitle format and your audio setup (TV speakers, soundbar, receiver)."
   - type: textarea
     id: screenshots
     attributes:
@@ -105,44 +86,10 @@ body:
       label: Technical notes
       description: Optional suspected root cause or related observations. Keep this separate from what you observed above.
   - type: input
-    id: ai-harness
+    id: ai-disclosure
     attributes:
-      label: AI harness
-      description: Enter the exact agent harness or application, or "none".
-    validations:
-      required: true
-  - type: input
-    id: ai-tools
-    attributes:
-      label: AI tool(s)
-      description: Enter the exact tool name(s), or "none".
-    validations:
-      required: true
-  - type: input
-    id: ai-models
-    attributes:
-      label: AI model(s)
-      description: Enter the exact model identifier(s) reported by each tool, or "n/a".
-    validations:
-      required: true
-  - type: dropdown
-    id: ai-involvement
-    attributes:
-      label: AI involvement
-      options:
-        - No AI used
-        - Human-written, AI-reviewed
-        - AI-assisted
-        - Fully AI-generated, human verified
-    validations:
-      required: true
-  - type: textarea
-    id: ai-review
-    attributes:
-      label: Independent or adversarial review
-      description: Summarize the scope, method, findings, and resolutions, or enter "n/a" when this issue does not require independent or adversarial review.
-    validations:
-      required: true
+      label: AI disclosure
+      description: Optional. Note if you used AI to draft or investigate this issue (tool and model), or leave blank.
   - type: checkboxes
     id: confirmations
     attributes:
@@ -150,5 +97,5 @@ body:
       options:
         - label: I searched open and recently closed issues and pull requests, and this is not already reported
           required: true
-        - label: I reproduced this myself on the device and app version above
+        - label: I reproduced this myself on the Apple TV and app version above
           required: true
