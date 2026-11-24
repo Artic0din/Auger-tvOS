@@ -8,7 +8,7 @@ contract; do not hand-edit either one. Re-vendor with `git show
 <commit>:contracts/settings/v1/<file>` from the server repo, update the commits
 below, regenerate iosApp/iosApp/Networking/SettingKeys.generated.swift with the
 server's generator at the same commit (`go run ./cmd/settingsgen -lang swift
--out <path>`), then run the SiloTests scheme —
+-out <path>`), then run the Auger scheme tests —
 SettingsConformanceTests fails when the fixture's manifest_revision, the
 vendored manifest's revision, and the generated SettingKey.revision stop
 agreeing, which is the whole point of carrying the pair rather than the

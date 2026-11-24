@@ -111,8 +111,11 @@ final class WatchPartyAPITests: XCTestCase {
     func testAppLinkInvitationMatchesTheWebLink() throws {
         let app = try XCTUnwrap(WatchPartyInvitation(url: URL(string:
             "silo://watch-party?server=https%3A%2F%2Fexample.test%2Fsilo%2F&token=invite%2Bproof")!))
+        let augerApp = try XCTUnwrap(WatchPartyInvitation(url: URL(string:
+            "auger://watch-party?server=https%3A%2F%2Fexample.test%2Fsilo%2F&token=invite%2Bproof")!))
         let web = try XCTUnwrap(WatchPartyInvitation(url: URL(string: "https://example.test/silo/rooms/join?token=invite%2Bproof")!))
         XCTAssertEqual(app, web)
+        XCTAssertEqual(augerApp, web)
         let lan = try XCTUnwrap(WatchPartyInvitation(url: URL(string: "SILO://watch-party?server=HTTP://192.168.1.10:8090&token=t")!))
         XCTAssertEqual(lan.serverURL, "http://192.168.1.10:8090")
         for value in ["silo://watch-party?token=a", "silo://watch-party?server=https://example.test&token=",

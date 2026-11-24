@@ -62,7 +62,7 @@ struct TVItemDetailView: View {
     /// read; reading the locale re-renders them after a language change.
     @Environment(\.locale) private var locale
     private static let focusLogger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "org.siloserver.silo",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.artic0din.auger",
         category: "TVFocus"
     )
 

@@ -10,15 +10,15 @@ final class SiriIntentTests: XCTestCase {
     func testTermSurvivesLinkRoundTrip() throws {
         for term in ["The Office", "Tom & Jerry", "50% off?", "Amélie", "a+b=c #1"] {
             let url = try XCTUnwrap(SiriSearchLink.url(term: term))
-            XCTAssertEqual(url.scheme, "silo")
+            XCTAssertEqual(url.scheme, "auger")
             XCTAssertEqual(SiriSearchLink.term(from: url), term, "\(url)")
         }
     }
 
     func testTermIsTrimmedAndBlankOpensEmptySearch() throws {
-        XCTAssertEqual(SiriSearchLink.term(from: try XCTUnwrap(URL(string: "silo://search?q=%20Dune%0A"))), "Dune")
-        XCTAssertEqual(SiriSearchLink.term(from: try XCTUnwrap(URL(string: "silo://search"))), "")
-        XCTAssertEqual(SiriSearchLink.term(from: try XCTUnwrap(URL(string: "continuum://search?q=Dune"))), "Dune")
+        XCTAssertEqual(SiriSearchLink.term(from: try XCTUnwrap(URL(string: "auger://search?q=%20Dune%0A"))), "Dune")
+        XCTAssertEqual(SiriSearchLink.term(from: try XCTUnwrap(URL(string: "auger://search"))), "")
+        XCTAssertEqual(SiriSearchLink.term(from: try XCTUnwrap(URL(string: "silo://search?q=Dune"))), "Dune")
     }
 
     func testOtherLinksAreNotSearchLinks() throws {

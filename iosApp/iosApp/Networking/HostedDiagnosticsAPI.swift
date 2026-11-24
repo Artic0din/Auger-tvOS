@@ -122,15 +122,11 @@ enum HostedDiagnosticsAPIError: Error, Equatable {
 }
 
 actor HostedDiagnosticsAPI {
-    static let defaultBaseURL: URL = {
-        guard let url = URL(string: "https://diagnostics.siloserver.org") else {
-            fatalError("The hosted diagnostics URL must be valid.")
-        }
-        return url
-    }()
+    /// Auger does not upload diagnostics to a hosted third-party collector.
+    static let defaultBaseURL: URL? = nil
     static let shared = HostedDiagnosticsAPI()
 
-    private let baseURL: URL
+    private let baseURL: URL?
     private let session: URLSession
     private let credentialStore: any HostedDiagnosticsCredentialStoring
     /// A Task, rather than a boolean, makes first-run registration single
@@ -139,7 +135,7 @@ actor HostedDiagnosticsAPI {
     private var installationCredentialTask: Task<HostedDiagnosticsCredential, Error>?
 
     init(
-        baseURL: URL = HostedDiagnosticsAPI.defaultBaseURL,
+        baseURL: URL? = HostedDiagnosticsAPI.defaultBaseURL,
         session: URLSession = HostedDiagnosticsAPI.makeIsolatedSession(),
         credentialStore: any HostedDiagnosticsCredentialStoring = HostedDiagnosticsKeychainCredentialStore()
     ) {
@@ -361,7 +357,7 @@ actor HostedDiagnosticsAPI {
     private func registerInstallation(platform: Platform) async throws -> HostedDiagnosticsCredential {
         let body = HostedInstallationRequest(
             platform: platform,
-            appID: Bundle.main.bundleIdentifier ?? "org.siloserver.silo",
+            appID: Bundle.main.bundleIdentifier ?? "com.artic0din.auger",
             appVersion: AppleDeviceIdentity.bundleAppVersion,
             appBuild: AppleDeviceIdentity.bundleAppBuild
         )
@@ -381,7 +377,8 @@ actor HostedDiagnosticsAPI {
     }
 
     private func request(path: String, method: String) throws -> URLRequest {
-        guard baseURL.scheme?.lowercased() == "https",
+        guard let baseURL,
+              baseURL.scheme?.lowercased() == "https",
               baseURL.host != nil,
               baseURL.path.isEmpty || baseURL.path == "/",
               baseURL.user == nil,

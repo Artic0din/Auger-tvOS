@@ -8,34 +8,34 @@ enum OpenSourceAcknowledgements {
         var fileExtension: String? = "txt"
     }
 
-    /// The AGPL's "Appropriate Legal Notices" for Silo itself: copyright, no
+    /// The AGPL's "Appropriate Legal Notices" for Auger: copyright, no
     /// warranty, the license and its additional permission, and where the
     /// source is published (this build's archive when a release lane stamped it).
     static let siloNotice = """
     Copyright (C) 2026 Silo Media L.L.C. and contributors.
 
-    Silo is free software: you can redistribute it and/or modify it under the \
+    Auger is free software: you can redistribute it and/or modify it under the \
     terms of the GNU Affero General Public License as published by the Free \
     Software Foundation, either version 3 of the License, or (at your option) \
     any later version, with the additional permission for app store \
     distribution reproduced below.
 
-    Silo is distributed in the hope that it will be useful, but WITHOUT ANY \
+    Auger is distributed in the hope that it will be useful, but WITHOUT ANY \
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS \
     FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License below \
     for more details.
 
     Source code: \(SiloLegalLinks.sourceCode.absoluteString)
 
-    The Silo name, logo, and wordmark are trademarks of Silo Media L.L.C. and \
-    are not licensed under the AGPL.
+    Silo and the Silo logo are trademarks of Silo Media L.L.C. Auger is a \
+    third-party client for Silo.
     """
 
     /// The first two resources are the repository's own LICENSE and
     /// APPSTORE-EXCEPTION.md, copied into the bundle by project.yml.
     static let resources: [Resource] = [
         Resource(title: "GNU Affero General Public License version 3", name: "LICENSE", fileExtension: nil), // i18n-ignore: license title, legal text
-        Resource(title: "Silo Apple App Store / DRM Exception", name: "APPSTORE-EXCEPTION", fileExtension: "md"), // i18n-ignore: license title, legal text
+        Resource(title: "App Store / DRM Exception", name: "APPSTORE-EXCEPTION", fileExtension: "md"), // i18n-ignore: license title, legal text
         Resource(title: "Overview and provenance", name: "README"), // i18n-ignore: heading inside the English-only license text
         Resource(
             title: "AetherEngine — LGPL 3 and Apple Store / DRM Exception", // i18n-ignore: license title, legal text
@@ -69,8 +69,8 @@ enum OpenSourceAcknowledgements {
         let text: String
     }
 
-    /// Silo's own notice first, then the resources in order.
-    static let entries: [Entry] = [Entry(id: "Silo", text: "Silo\n====\n\n\(siloNotice)")] + resourceEntries
+    /// Auger's own notice first, then the resources in order.
+    static let entries: [Entry] = [Entry(id: "Auger", text: "Auger\n=====\n\n\(siloNotice)")] + resourceEntries
 
     private static let resourceEntries: [Entry] = resources.map { resource in
         let body: String

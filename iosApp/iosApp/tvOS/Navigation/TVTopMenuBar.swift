@@ -271,7 +271,7 @@ struct TVTopMenuBar: View {
     /// reading the locale redraws them when the app language changes.
     @Environment(\.locale) private var locale
     private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "org.siloserver.silo",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.artic0din.auger",
         category: "TVFocus"
     )
 

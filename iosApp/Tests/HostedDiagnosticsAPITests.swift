@@ -7,10 +7,7 @@ final class HostedDiagnosticsAPITests: XCTestCase {
     private let selfHostedStub = SelfHostedDiagnosticsStub()
 
     func testDefaultCollectorSessionHasNoSharedCookiesOrCredentials() throws {
-        XCTAssertEqual(
-            HostedDiagnosticsAPI.defaultBaseURL,
-            try XCTUnwrap(URL(string: "https://diagnostics.siloserver.org"))
-        )
+        XCTAssertNil(HostedDiagnosticsAPI.defaultBaseURL)
 
         let session = HostedDiagnosticsAPI.makeIsolatedSession()
         defer { session.invalidateAndCancel() }

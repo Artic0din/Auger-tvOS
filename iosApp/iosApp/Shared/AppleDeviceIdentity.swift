@@ -15,7 +15,7 @@ struct AppleDeviceIdentity: Sendable {
     /// metadata (`iOS`, `tvOS`, `macOS`), while this intentionally groups
     /// interchangeable form factors across operating systems.
     let clientFamily: String
-    /// Product name the server shows in admin Activity (e.g. `Silo Apple TV`).
+    /// Product name the server shows in admin Activity (e.g. `Auger`).
     /// Deliberately human-facing and stable per product, not per device.
     let clientName: String
     /// `CFBundleShortVersionString` (marketing version), or `unknown`.
@@ -35,7 +35,7 @@ struct AppleDeviceIdentity: Sendable {
         name: String,
         platform: String,
         clientFamily: String,
-        clientName: String = "Silo",
+        clientName: String = "Auger",
         appVersion: String = "unknown",
         appBuild: String = "unknown",
         channel: String = "unknown"
@@ -107,18 +107,8 @@ struct AppleDeviceIdentity: Sendable {
         #endif
     }
 
-    /// Mirrors `currentClientFamily()`'s idiom split so an iPad and an iPhone
-    /// running the same binary are distinguishable in admin Activity.
     private static func currentClientName() -> String {
-        #if os(tvOS)
-        return "Silo Apple TV"
-        #elseif os(macOS)
-        return "Silo Mac"
-        #elseif os(iOS)
-        return UIDevice.current.userInterfaceIdiom == .pad ? "Silo iPad" : "Silo iPhone"
-        #else
-        return "Silo"
-        #endif
+        "Auger"
     }
 
     /// `CFBundleShortVersionString` (marketing version), or `unknown`.

@@ -46,7 +46,7 @@ struct TVCollectionsRow: View {
     @State private var focusRestorationGeneration = 0
     @State private var lastAppliedDetailReturnFocusRequest = 0
     private static let focusLogger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "org.siloserver.silo",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.artic0din.auger",
         category: "TVFocus"
     )
 

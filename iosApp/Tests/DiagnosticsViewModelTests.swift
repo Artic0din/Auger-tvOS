@@ -23,7 +23,7 @@ final class DiagnosticsViewModelTests: XCTestCase {
         let suite = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         suite.removePersistentDomain(forName: suiteName)
         let defaults = SharedDefaults(suite: suite, standard: suite)
-        let destinationStore = DiagnosticsDestinationStore(defaults: defaults)
+        let destinationStore = DiagnosticsDestinationStore(defaults: defaults, allowsHostedDestination: true)
         destinationStore.select(.hosted)
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(
             "DiagnosticsViewModel-shared-destination-\(UUID().uuidString)",
@@ -57,7 +57,7 @@ final class DiagnosticsViewModelTests: XCTestCase {
         let suite = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         suite.removePersistentDomain(forName: suiteName)
         let defaults = SharedDefaults(suite: suite, standard: suite)
-        let destinationStore = DiagnosticsDestinationStore(defaults: defaults)
+        let destinationStore = DiagnosticsDestinationStore(defaults: defaults, allowsHostedDestination: true)
         destinationStore.select(.hosted)
         let consentStore = DiagnosticsConsentStore(
             defaults: defaults,

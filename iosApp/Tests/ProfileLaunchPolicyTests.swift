@@ -653,7 +653,7 @@ final class ProfileLaunchIdentityTests: XCTestCase {
     }
 
     func testAppLocalKeychainFallbackPolicyRecognizesUnsignedArchiveGroup() {
-        let unprefixedGroup = "org.siloserver.silo.shared"
+        let unprefixedGroup = "com.artic0din.auger.shared"
 
         XCTAssertEqual(
             SideloadKeychainFallbackPolicy.resolvedAccessGroup(

@@ -22,7 +22,7 @@ protocol NearbySignInCodeSource: AnyObject {
 /// Drives the TV side of a pairing session over an accepted `PairingChannel`.
 /// Persist-on-success: a pushed server URL is written to ServerRegistry /
 /// TokenStore ONLY after its poll returns tokens (§5/§6 of
-/// docs/superpowers/specs/2026-06-14-companion-pairing-design.md).
+/// Coordinates the Apple TV receiver side of companion pairing over LAN TLS.
 ///
 /// Two modes. `setup` (first-run screen, TXT `st=setup`) accepts any pushed
 /// server and runs its own device authorization per server. `login` (the
@@ -198,7 +198,7 @@ final class ReceiverPairingCoordinator {
     /// explicit TV-side teardown is waiting for the current attempt to reach
     /// its cancellation-safe boundary.
     private var isCancelling = false
-    private static let logger = Logger(subsystem: "org.siloserver.silo", category: "pairing.receiver")
+    private static let logger = Logger(subsystem: "com.artic0din.auger", category: "pairing.receiver")
 
     init(
         api: any PairingDeviceAuthorizing = PairingDeviceAPI(),

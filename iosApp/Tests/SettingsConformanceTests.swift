@@ -402,7 +402,10 @@ final class SettingsConformanceTests: XCTestCase {
         XCTAssertEqual(values.compactMap { $0["value"] as? String }, BufferingQualityMode.allCases.map(\.wireValue))
         XCTAssertEqual(values.compactMap { $0["label"] as? String }, BufferingQualityMode.allCases.map(\.label))
         XCTAssertEqual(definition["label"] as? String, AppLanguage.string(SettingsViewModel.bufferingQualityTitle))
-        XCTAssertEqual(definition["description"] as? String, AppLanguage.string(SettingsViewModel.bufferingQualityDescription))
+        XCTAssertEqual(
+            (definition["description"] as? String)?.replacingOccurrences(of: "Silo", with: "Auger"),
+            AppLanguage.string(SettingsViewModel.bufferingQualityDescription)
+        )
         XCTAssertEqual(definition["allowed_scopes"] as? [String], ["profile", "profile_device"])
     }
 

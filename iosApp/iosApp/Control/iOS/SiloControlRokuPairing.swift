@@ -73,7 +73,7 @@ struct SiloControlPairingLink: Equatable {
     let key: Data?
 
     init?(url: URL) {
-        guard url.scheme?.lowercased() == SiloURLScheme.current, url.host?.lowercased() == "cast",
+        guard SiloURLScheme.isAppURL(url), url.host?.lowercased() == "cast",
               let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { return nil }
         func value(_ name: String) -> String? {
             items.first { $0.name == name }?.value.flatMap { $0.isEmpty ? nil : $0 }
