@@ -1,263 +1,99 @@
-# Contributing to Silo Apple
+# Contributing to Auger
 
 > [!IMPORTANT]
-> The most helpful way to contribute to Silo right now is a clear, accurate
-> issue. Feature ideas go in
-> [Discussions → Ideas](https://github.com/Silo-Server/silo-apple/discussions/categories/ideas),
-> not issues. Pull requests are welcome from contributors who've had one merged
-> in a Silo repository, or when a maintainer asks for one; a feature pull request
-> also needs an issue a maintainer has labeled `accepted`. Every pull request
-> needs evidence. Other pull requests, drafts, and pull requests still without
-> evidence a day after they open are closed automatically without review.
+> The most helpful way to contribute right now is a clear, accurate [issue](https://github.com/Artic0din/silo-apple/issues).
+> Pull requests are welcome when a maintainer asks for one.
 
-## Why we're asking for issues
+## Why we ask for issues
 
-Pull requests now arrive faster than we can review them carefully. Reviewing a
-change properly means reading every line, checking it against work already in
-flight, re-running validation, and owning the result after it merges. Writing
-the change ourselves from a precise issue takes less time, and it keeps every
-change on one workflow with the same tests and the same review.
-
-This is about review capacity, not the quality of anyone's work, and it applies
-whether or not you used AI. We'll revisit it as Silo approaches 1.0. Thank you
-for taking the time to write things up well.
+Pull requests take time to review, verify against work already in flight, and own after merge.
+Writing the change from a precise issue keeps every change on one workflow with the same tests and checks.
+This applies whether or not you used AI.
 
 ## Write a useful issue
 
-Open an [issue](https://github.com/Silo-Server/silo-apple/issues) for problems
-in the iOS, tvOS, and macOS apps. Server and API problems belong in
-[`silo-server`](https://github.com/Silo-Server/silo-server/issues/new/choose).
-Search first; if an issue already covers the problem, add what's new there.
+Open an [issue](https://github.com/Artic0din/silo-apple/issues) for bugs or feature requests in Auger (Apple TV / tvOS).
+Problems with the Silo server or its API belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose), not here.
+Search existing issues first and add new details to an open issue rather than filing a duplicate.
 
-Using Claude Code or Codex? The
-[Silo troubleshooting skill](https://github.com/Silo-Server/silo-troubleshooting-skill)
-helps you collect these details and drafts the issue, then has independent
-reviewers check it against your evidence before you post it.
+Include the details needed to reproduce or evaluate the request:
 
-- One problem per issue.
+- One problem or proposal per issue.
 - Describe what you observed before any theory about the cause.
-- Give exact steps to reproduce, expected and actual behavior, the app version
-  and build, your device and OS version, and the Silo server version.
-- Paste raw logs rather than a summary. Redact credentials, tokens, personal
-  data, and private media details, mark each redaction, and leave the rest
-  untouched.
-- If you found the cause or have a fix in mind, add it under a Technical notes
-  heading, apart from what you observed. Point to the files involved; a short
-  code excerpt is fine. We may implement it differently.
-- Disclose AI use, as described in the
-  [Silo contribution guide](https://github.com/Silo-Server/.github/blob/main/CONTRIBUTING.md#ai-assisted-contributions).
-
-Report security vulnerabilities privately with **Report a vulnerability** on
-the repository's Security tab, not in a public issue.
-
-## Suggest a feature
-
-Post feature ideas for the iOS, tvOS, and macOS apps in
-[Discussions → Ideas](https://github.com/Silo-Server/silo-apple/discussions/categories/ideas),
-not as issues. Ideas that need new server behavior go in
-[silo-server's Ideas](https://github.com/Silo-Server/silo-server/discussions/categories/ideas).
-Search first and upvote an existing idea rather than repeating it. Describe the
-problem the feature solves and who it affects, and read
-[Project non-goals](https://github.com/Silo-Server/silo-server/blob/main/docs/non-goals.md)
-first. Maintainers open an issue for an idea when they plan to build it or want
-help building it.
+- Give exact steps to reproduce, expected and actual behavior, the app version and build, your Apple TV model and tvOS version, and the Silo server version.
+- Paste raw logs rather than a summary.
+  Redact credentials, tokens, personal data, and private media details, mark each redaction, and leave the rest untouched.
+- For a feature request, describe the problem it solves and who it affects.
+- If you found the cause or have a fix in mind, add it under a `Technical notes` heading separate from what you observed.
+  Point to the files involved.
+- Note if you used AI to draft or investigate the issue.
 
 ## Pull requests
 
-Pull requests are welcome from contributors who've had a pull request merged in
-a Silo repository, and from anyone a maintainer has asked for one, usually in
-an issue comment. A feature pull request (a `feat` title) from someone without
-triage or write access must also link, in its description, an issue in this
-repository that a maintainer has labeled `accepted`. The rest of this guide applies to those pull requests.
+Pull requests are welcome when a maintainer asks for one, usually in an issue comment.
+If a problem matters and no maintainer has asked for a pull request, open an [issue](https://github.com/Artic0din/silo-apple/issues) instead.
 
-A workflow closes other pull requests without review when they open. That isn't
-a judgment of the work. If the problem still matters, open an issue for it, or
-post a feature idea in Ideas, and link the closed pull request; we may use the
-code as a reference. Once a feature's issue is labeled `accepted`, link it in
-a new pull request, or ask a maintainer to reopen the closed one. If a
-maintainer asked you for a pull request and you haven't had one merged yet, the
-workflow still closes it when it opens; the maintainer reopens it, and the
-check leaves it alone from then on.
+When you open an invited pull request:
 
-Two more rules apply to pull requests from anyone without triage or write
-access, including invited ones:
-
-- Open the pull request ready for review. The workflow closes drafts, both when
-  they open and when they are converted to drafts.
-- Every pull request needs evidence, as [Show visible changes](#show-visible-changes)
-  describes. A pull request whose `Evidence` check still asks for evidence 24
-  hours after it opens, or after a maintainer reopens it, is closed without
-  review. Publish or attach evidence soon after you open it.
-
-The [Silo contribution guide](https://github.com/Silo-Server/.github/blob/main/CONTRIBUTING.md)
-covers project-wide coordination, focused changes, evidence, AI disclosure, and
-pull request expectations. Those requirements apply here; this guide adds the
-Apple-specific workflow.
-
-## Before you start
-
-A feature needs an issue labeled `accepted` before you implement it; start
-with an idea in Ideas. Open an
-[issue](https://github.com/Silo-Server/silo-apple/issues) before implementing a
-navigation or behavior change, large refactor, or work that changes the shared
-server contract. Documentation in this repository, narrow fixes, and
-well-scoped parity corrections can go straight to a pull request. The docs on
-[siloserver.org](https://siloserver.org/docs) don't take pull requests from
-contributors: open a docs issue in
-[`siloserver.org`](https://github.com/Silo-Server/siloserver.org) instead.
-Select **Suggest a change** at the bottom of the page, or use the
-[Suggest a docs change](https://github.com/Silo-Server/siloserver.org/issues/new?template=docs.yml) form.
-
-This repository owns the iOS, tvOS, and macOS clients. Server/API work belongs
-in [`silo-server`](https://github.com/Silo-Server/silo-server), and shared client
-behavior should be checked against
-[`silo-android`](https://github.com/Silo-Server/silo-android).
+- Keep one concern per pull request.
+- Use a Conventional Commit title (`feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `chore`, `ci`).
+- Link the issue it addresses.
+- Fill in the pull request description with the problem, the approach, actual validation results, and any AI disclosure.
+- Include evidence that the change works (see [Show visible changes](#show-visible-changes)).
 
 ## Development setup
 
-Read [README.md](README.md) for prerequisites, signing setup, and build commands,
-then read [AGENTS.md](AGENTS.md) for module ownership and platform guidance.
-Regenerate `iosApp/Silo.xcodeproj` from `iosApp/project.yml`; never hand-edit the
-generated project.
+Read [README.md](README.md) for prerequisites, signing setup, and build commands.
+Regenerate `iosApp/Auger.xcodeproj` from `iosApp/project.yml` with `xcodegen generate` instead of hand-editing the generated project.
 
 ## Validate your change
 
-Build every affected platform and run the focused XCTest targets. A typical
-iOS build and simulator test gate is:
+Build and test the tvOS app before opening or updating a pull request:
 
 ```sh
 cd iosApp
 xcodegen generate
 xcodebuild build \
-  -project Silo.xcodeproj \
-  -scheme Silo \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  CODE_SIGNING_ALLOWED=NO
+  -project Auger.xcodeproj \
+  -scheme Auger \
+  -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' \
+  CODE_SIGN_IDENTITY='' CODE_SIGNING_ALLOWED=NO
 xcodebuild test \
-  -project Silo.xcodeproj \
-  -scheme Silo \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+  -project Auger.xcodeproj \
+  -scheme Auger \
+  -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' \
+  CODE_SIGN_ALLOWED=YES CODE_SIGN_IDENTITY=-
 ```
 
-Simulator tests use ad-hoc signing so Keychain-dependent tests have an application
-identity; they do not require a distribution certificate.
-
-The `SiloTests` bundle belongs to the `Silo` scheme; there are currently no
-separate tvOS or macOS test bundles. Use `SiloTV` with a tvOS simulator for tvOS
-builds and `SiloMac` with `platform=macOS` for macOS builds. Exercise visible
-changes in each affected app.
+Simulator tests use ad-hoc signing so Keychain-dependent tests have an application identity.
+They do not require a distribution certificate.
+Exercise visible changes on an Apple TV simulator or device.
 
 ## Show visible changes
 
-Every pull request shows evidence that the change works, so reviewers can see it
-without building the branch. A change users can see shows the change itself. A
-change users can't see shows how you checked it: the steps you ran, the build or
-commit, and trimmed test results.
+Every pull request shows evidence that the change works so reviewers can inspect it without building the branch.
 
-A pull request that changes what a user sees must show the change in its
-Evidence section. In this repository that means iOS, tvOS, and macOS. A change
-is visible when it alters any of these:
+- For UI, layout, focus, copy, metadata, artwork, or playback changes, attach before-and-after screenshots of the same screen and data on Apple TV under the pull request's **Evidence** heading.
+  Add a short recording when motion, timing, or focus movement matters.
+  Name the simulator or Apple TV model and the commit SHA for each capture.
+- For non-visible changes such as refactors, CI, or tests, paste the commands you ran, the commit SHA, and trimmed test results.
 
-- layout, styling, copy, navigation, focus, empty and error states;
-- which items a screen shows, or in what order: search results, home sections,
-  recommendations, library browsing, collections, sorting, or filtering;
-- what an item shows: titles, artwork, descriptions, ratings, badges, episode
-  grouping, or availability;
-- playback behavior a user notices, such as default audio or subtitle tracks,
-  markers, controls, or resume position.
-
-Provide evidence that fits the change:
-
-- **Changes to a screen:** before-and-after screenshots of the same screen with
-  the same data, one pair per affected surface. Add a short recording when
-  motion, timing, focus movement, or a multi-step flow matters.
-- **Every affected device:** iPhone, iPhone Duo, iPad, Mac, and Apple TV each
-  lay out screens differently, so capture each one the change can reach. Shared
-  code outside the `iOS`, `macOS`, and `tvOS` folders usually reaches all of
-  them. Capture the iPhone Duo both folded and open: the open display is
-  iPad-sized but reports as a phone, so it gets layouts no other device shows.
-  Simulator captures are fine. To skip a device, say why the change cannot
-  reach it.
-- Name the device, the build or commit, and for the iPhone Duo whether it was
-  folded or open, for each capture.
-- **Changes nothing shows**, such as internal refactors, CI, or performance
-  work: the steps you ran, the build or commit, and trimmed test or benchmark
-  results that show the change does what the description says.
-
-Capture against a test library or public-domain media where you can, and keep
-passwords, tokens, and API keys out of every capture. Then put the evidence in
-one of two places:
-
-- **On GitHub:** attach the screenshots or recordings under the pull request's
-  Evidence heading. Everything on GitHub is public, so crop or blur hostnames,
-  URLs, account names, and personal library contents.
-- **On [evidence.siloserver.org](https://evidence.siloserver.org/) (optional):**
-  only you and Silo maintainers can open what you publish there, after signing
-  in with GitHub, so captures need no cropping or blurring. Captions that start
-  with `Before:` and `After:` become a side-by-side comparison, and recordings
-  get a player. Upload from the Details link of the pull request's `Evidence`
-  check, or with the command line (Node.js 22 or later):
-  `npx @silo-server/evidence login` once on each computer, then
-  `npx @silo-server/evidence publish <folder> --pr <number>`. The
-  [package README](https://www.npmjs.com/package/@silo-server/evidence) describes
-  the folder. Then write
-  `Evidence: https://evidence.siloserver.org/r/silo-apple/pr-<number>/` under
-  the Evidence heading. Until a pull request of yours has merged here, a
-  maintainer approves you once before your first upload. If that approval
-  hasn't come through, attach the evidence on GitHub instead.
-
-The pull request's `Evidence` check asks for evidence on every pull request and
-passes once evidence is published or attached. A maintainer can waive it with
-the `evidence-not-needed` label, for example for an automated dependency
-update. A pull request from someone without triage or write access whose check
-still asks for evidence 24 hours after it opens is closed without review; a
-maintainer can reopen it once evidence is up. If you could not capture part of
-the evidence, say why; the reviewer decides whether the pull request can merge
-without it.
-
-## Open the pull request
-
-Use a Conventional Commit title, fill in the pull request template, explain
-which platforms are affected, paste the actual validation results, and call out
-any server coordination. Read the [AI-assisted contribution policy](https://github.com/Silo-Server/silo-server/blob/main/docs/ai-contributions.md)
-and include its disclosure block.
-
-A change users can notice is not done until each other Silo client (Android,
-Roku, and Web) has been handled or ruled out. For each one that needs the same
-change, open an issue in its repository at minimum, linking your pull request;
-search first and add to an existing issue when there is one. Open a pull request
-there too if you can build and verify that client and its contribution rules let
-you. List the outcome on the template's `Other clients:` line. [Cross-client
-parity](AGENTS.md#cross-client-parity) has the details.
+Capture against a test library or public-domain media where you can.
+Everything attached on GitHub is public, so crop or blur hostnames, URLs, account names, tokens, passwords, and personal media details.
 
 ## Licensing of contributions
 
-This project is licensed under `AGPL-3.0-or-later` with two additional
-permissions: the App Store / DRM permission in
-[APPSTORE-EXCEPTION.md](APPSTORE-EXCEPTION.md) and the platform library
-permission in [PLATFORM-EXCEPTION.md](PLATFORM-EXCEPTION.md).
+This project is licensed under `AGPL-3.0-or-later` with two additional permissions: the App Store and DRM permission in [APPSTORE-EXCEPTION.md](APPSTORE-EXCEPTION.md) and the platform library permission in [PLATFORM-EXCEPTION.md](PLATFORM-EXCEPTION.md).
 
-By submitting a contribution, you agree that it is licensed under those
-same terms — the AGPL *including* both additional permissions — and that
-the project may distribute builds containing your contribution through
-application stores such as the Apple App Store and TestFlight as the App
-Store permission describes. If you cannot agree to an additional
-permission, say so in your pull request before it is merged.
+By submitting a contribution, you agree that it is licensed under those same terms, including both additional permissions, and that the project may distribute builds containing your contribution through application stores such as the Apple App Store and TestFlight as the App Store permission describes.
+If you cannot agree to an additional permission, say so in your pull request before it is merged.
 
-You retain copyright in your contribution; no assignment is requested.
+You retain copyright in your contribution.
+No copyright assignment is requested.
 
 ## Practical notes
 
-- Repository layout, build commands, and coding conventions are in
-  [AGENTS.md](AGENTS.md) and the docs under `docs/`.
-- Third-party components and their licenses are inventoried in
-  [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); update it when a
-  dependency changes.
-
-## Instructions for coding agents
-
-Coding agents must read [AGENTS.md](AGENTS.md) before changing the repository
-(`CLAUDE.md` points to the same guidance). The organization-wide contribution
-guide and AI-assisted contribution policy apply to agent and human authors
-equally.
+- Repository layout, build commands, and tvOS notes are in [README.md](README.md) and `docs/` (including [docs/tvos-focus.md](docs/tvos-focus.md)).
+- Third-party components and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+  Update it when a dependency changes.
+- Coding agents must read [AGENTS.md](AGENTS.md) before changing the repository.

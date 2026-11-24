@@ -1,56 +1,39 @@
 # Third-Party Notices and Media Binary Provenance
 
-This file describes third-party code shipped by the installable Silo Apple
-applications. Build and release tools that do not ship in an application
-bundle are outside its scope. Complete license texts are committed under
-`iosApp/Resources/OpenSourceLicenses/`. The shared resource source configures
-them for the iOS, tvOS, and macOS applications, with a local reader under
-Settings > About > Acknowledgements. That reader opens with Silo's own AGPL
-notice, `LICENSE`, and `APPSTORE-EXCEPTION.md`, and links the build's source
-archive when a release lane stamped one (`SiloSourceURL`). Generated-project
-and built-bundle verification is still required.
+This file describes third-party code shipped by Auger for Apple TV (tvOS).
+Build and release tools that do not ship in an application bundle are outside its scope.
+Complete license texts are committed under `iosApp/Resources/OpenSourceLicenses/`.
+The tvOS app bundles them with a local reader under Settings > About > Acknowledgements.
+That reader opens with Auger's own AGPL notice, `LICENSE`, and `APPSTORE-EXCEPTION.md`, and links the build's source archive when a release lane stamped one (`SiloSourceURL`).
+Generated-project and built-bundle verification is still required.
 
-The authoritative dependency lock is
-`iosApp/Silo.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
+The authoritative dependency lock is `iosApp/Auger.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
 
 ## Shipped package products
 
 | Component | Exact revision | Shipped form | License |
 | --- | --- | --- | --- |
-| AetherEngine 7.56.0 and upstream `main` through `a6fbf0a1` + Silo subtitle, HLS authorization and playback recovery patches, every optional component off | `f470d8dc610537929c83ef31877287e9d2ad9d28` | Swift package target linked into each host app | LGPL-3.0-only with AetherEngine's Apple Store / DRM exception |
+| AetherEngine 7.56.0 and upstream `main` through `a6fbf0a1` + subtitle, HLS authorization and playback recovery patches, every optional component off | `f470d8dc610537929c83ef31877287e9d2ad9d28` | Swift package target linked into Auger | LGPL-3.0-only with AetherEngine's Apple Store / DRM exception |
 | FFmpegBuild 3.12.1 | `9c87af0231fd1403654c14a0e867fe8aa43c5bea` | Nine separately embedded dynamic frameworks | See the component table below |
 | LibDovi 2.1.0 | `0d7cce1d6836a30d13a3a2326e50a153af53f014` | Static `Dovi.xcframework` linked through AetherEngine | MIT packaging; embedded libdovi is MIT |
-| Nuke and NukeUI 13.2.0 | `30f7a7e72e0607d304fbf69c799474bd5fb6d1ce` | Swift package targets linked into each host app | MIT |
+| Nuke and NukeUI 13.2.0 | `30f7a7e72e0607d304fbf69c799474bd5fb6d1ce` | Swift package targets linked into Auger | MIT |
 
-SwiftPM also resolves SMBClient 0.3.1 because AetherEngine publishes an
-optional `AetherEngineSMB` product. Silo depends only on the `AetherEngine`
-product. `AetherEngineSMB` and SMBClient are not linked or copied into Silo's
-app targets, so SMBClient is not a shipped component and its notice is not
-included here.
+SwiftPM also resolves SMBClient 0.3.1 because AetherEngine publishes an optional `AetherEngineSMB` product.
+Auger depends only on the `AetherEngine` product.
+`AetherEngineSMB` and SMBClient are not linked or copied into Auger's app target, so SMBClient is not a shipped component and its notice is not included here.
 
 ## AetherEngine
 
 Copyright (C) 2026 Vincent Herbst.
 
-AetherEngine is licensed under GNU LGPL version 3 with its upstream Apple
-Store / DRM exception. Silo builds a published fork revision: upstream release
-`7.56.0` and upstream `main` through commit `a6fbf0a1`, plus Silo patches for complete native subtitle
-renditions, source timing after a media reanchor, ASS subtitle routing, refreshable
-authorization for native HLS, sidecar subtitles and font bundles, and audio-switch
-tracking. Upstream compiles four optional components only for a host that enables
-their package traits, noting that they may need third-party patent licenses:
-`TrueHDObjectAudio` and `DTSXObjectAudio` (TrueHD Atmos and DTS:X object rendering),
-`DualLayerDolbyVision` (Profile 7 FEL composition) and `DolbyVisionStillReshaping`.
-The Silo fork leaves all four off, as upstream ships them, so LibTrueHD is neither
-resolved nor linked, TrueHD Atmos and DTS:X play through the channel bridge, and the
-TrueHD Atmos and DTS:X Playback setting is hidden. A unit test
-(`AetherOptionalComponentsTests`) fails if any of them is built in. Raw ASS events stay on the
-primary local overlay; secondary subtitles, secondary sidecars included, and software
-PiP receive normalized text, and packaged HLS retains
-its native text rendition for PiP and AirPlay. These modifications are
-published under the LGPL at the exact source revision below. The bundled
-acknowledgements include AetherEngine's complete license and exception plus
-the GNU GPL version 3 text incorporated by LGPLv3.
+AetherEngine is licensed under GNU LGPL version 3 with its upstream Apple Store / DRM exception.
+Auger builds a published patched revision: upstream release `7.56.0` and upstream `main` through commit `a6fbf0a1`, plus patches for complete native subtitle renditions, source timing after a media reanchor, ASS subtitle routing, refreshable authorization for native HLS, sidecar subtitles and font bundles, and audio-switch tracking.
+Upstream compiles four optional components only for a host that enables their package traits, noting that they may need third-party patent licenses: `TrueHDObjectAudio` and `DTSXObjectAudio` (TrueHD Atmos and DTS:X object rendering), `DualLayerDolbyVision` (Profile 7 FEL composition) and `DolbyVisionStillReshaping`.
+The pinned revision leaves all four off, as upstream ships them, so LibTrueHD is neither resolved nor linked, TrueHD Atmos and DTS:X play through the channel bridge, and the TrueHD Atmos and DTS:X Playback setting is hidden.
+A unit test (`AetherOptionalComponentsTests`) fails if any of them is built in.
+Raw ASS events stay on the primary local overlay; secondary subtitles, secondary sidecars included, and software PiP receive normalized text, and packaged HLS retains its native text rendition for PiP and AirPlay.
+These modifications are published under the LGPL at the exact source revision below.
+The bundled acknowledgements include AetherEngine's complete license and exception plus the GNU GPL version 3 text incorporated by LGPLv3.
 
 - Exact source: <https://github.com/Silo-Server/AetherEngine/tree/f470d8dc610537929c83ef31877287e9d2ad9d28>
   (engine pull requests: <https://github.com/Silo-Server/AetherEngine/pull/2>,
@@ -143,7 +126,7 @@ exact-revision links satisfy the source pointer as they stand.
 
 Historical binary inventory (FFmpegBuild 3.0.0): a tvOS Simulator debug build,
 inspected on 2026-09-04, embedded exactly the nine `Aether`-prefixed frameworks
-in the table under `SiloTV.app/Frameworks/`. Its `AetherLibavcodec` configure
+in the table under `Frameworks/`. Its `AetherLibavcodec` configure
 string contained `--enable-shared` without `--enable-gpl`, `--enable-version3`, or
 nonfree enablement, and the app binary exported no `avcodec_`/`avformat_`
 symbols of its own. These observations describe that older debug artifact;
@@ -198,9 +181,9 @@ Nuke and NukeUI are distributed under the MIT license, Copyright (c)
 
 ## ThumbHash decoder
 
-Silo includes an adapted copy of the ThumbHash Swift decoder, distributed
+Auger includes an adapted copy of the ThumbHash Swift decoder, distributed
 under the MIT license, Copyright (c) 2023 Evan Wallace. Only the image decode
-path is retained; Silo adds bounds validation, cross-platform image creation,
+path is retained; Auger adds bounds validation, image creation,
 and a bounded asynchronous cache around the reference algorithm.
 
 - Exact source:
@@ -236,20 +219,20 @@ external distribution:
    match what the release actually resolves in `Package.resolved`;
 3. if AetherEngine or any LGPL component was modified, publish the modified
    source under its license before shipping;
-4. publish the matching `Silo-source-<app-commit>.tar.gz` archive, with the app
+4. publish the matching `Auger-source-<app-commit>.tar.gz` archive, with the app
    source, pinned Swift packages, SwiftLibass dependency sources, revision manifest,
    and rebuild instructions, before distributing a binary that links SwiftLibass.
 
 ## Local ASS rendering
 
-Silo uses SwiftLibass 1.4.0 for libass bindings and SwiftAssRenderer 1.3.1
-for image compositing on all three Apple clients. Both Swift packages are MIT.
+Auger uses SwiftLibass 1.4.0 for libass bindings and SwiftAssRenderer 1.3.1
+for image compositing on tvOS. Both Swift packages are MIT.
 The native libraries are libass 0.17.3 (ISC), Fontconfig 2.15.0, FreeType 2.13.2
 (FreeType License), FriBidi 1.0.14 (LGPL-2.1-or-later), HarfBuzz 8.5.0, and
 libpng 1.6.43. Their full notices are bundled in `OpenSourceLicenses/`.
 This product uses the FreeType project.
 
-The native XCFrameworks contain static `.a` libraries and headers. Silo links
+The native XCFrameworks contain static `.a` libraries and headers. Auger links
 the libraries without embedding subtitle framework wrappers or generated stubs.
 
 - SwiftAssRenderer source: <https://github.com/mihai8804858/swift-ass-renderer/tree/28919f6b5ddd896d327b0283f8d97624902236e6>
@@ -266,7 +249,7 @@ the libraries without embedding subtitle framework wrappers or generated stubs.
 
 FriBidi is statically linked. LGPL 2.1 section 6(a) allows the work that uses
 the library to be supplied as source code or object code so a recipient can
-modify the library and relink the application. Silo uses the source-code path;
+modify the library and relink the application. Auger uses the source-code path;
 the app is distributed under the repository's AGPL license.
 
 The TestFlight and sideload workflows publish a source archive to GitHub

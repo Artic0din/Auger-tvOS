@@ -1,8 +1,8 @@
 # Requests API v2 consumer
 
-The Apple clients call `/api/v2/requests` for the request capability, search, discovery, detail, create, My Requests, cancel, remove, and follow. The methods live in `APIv2Client+Requests.swift`; `SiloAPI+Requests.swift` forwards to them. No request falls back to v1.
+Auger calls `/api/v2/requests` for the request capability, search, discovery, detail, create, My Requests, cancel, remove, and follow. The methods live in `APIv2Client+Requests.swift`; `SiloAPI+Requests.swift` forwards to them. No request falls back to v1.
 
-Request administration (approve, decline, retry, request limits, auto-approve) stays in the web admin. The Apple clients have no approvals queue or moderation actions and never call `/api/v2/admin/requests`, even for an admin account.
+Request administration (approve, decline, retry, request limits, auto-approve) stays in the server's web admin. Auger has no approvals queue or moderation actions and never calls `/api/v2/admin/requests`, even for an admin account.
 
 ## Scope and ownership
 
@@ -36,7 +36,7 @@ The transport raises the same identity error just before sending and after a res
 
 ## Remove
 
-My Requests offers **Remove Request** (swipe or context menu on iOS and macOS, the card's context menu on tvOS) on a request whose `outcome` is `failed` and none of whose targets is `completed`, the server's own rule (`MediaRequest.isRemovable`). A request that delivered one quality before failing records a copy in the library and keeps no remove action. A confirmation names the title first.
+My Requests offers **Remove Request** (via the card's context menu on tvOS) on a request whose `outcome` is `failed` and none of whose targets is `completed`, the server's own rule (`MediaRequest.isRemovable`). A request that delivered one quality before failing records a copy in the library and keeps no remove action. A confirmation names the title first.
 
 `DELETE /api/v2/requests/{id}` requires 204 with no body and percent-encodes the opaque ID. It is `non_retryable`, so it follows the create and cancel table above: an uncertain outcome holds the row's action until a re-read, and the transport never replays it after a 401. Every answer re-reads the list (an uncertain outcome under a replaced owner skips the read, as for cancel):
 

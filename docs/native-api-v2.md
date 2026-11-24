@@ -1,6 +1,6 @@
 # Native API v2 ownership
 
-The stable native business API is `/api/v2`. Apple release callers use the
+The stable native business API is `/api/v2`. Auger callers use the
 accepted v2 operation contracts and refuse unavailable operations. A failed or
 unconfigured v2 playback request must not silently start a v1 session. The
 retained `/api/v1/health` probe is the only v1 request and an operational
@@ -69,9 +69,6 @@ Only mutations on the replay allowlist refresh and re-send after a 401:
 `APIv2MutationCatalog` in `iosApp/iosApp/Networking/APIv2/APIv2RetrySafety.swift`,
 kept by hand in step with the contract's `x-silo-retry-safety` annotations.
 Any other mutation is sent once.
-
-See [bound audiobook playback](bound-audiobook-playback.md) for timeline identity,
-sequenced receipts and part-transition rules.
 
 ## Media request credentials stay ephemeral
 

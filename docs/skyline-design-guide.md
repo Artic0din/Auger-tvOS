@@ -1,18 +1,16 @@
 # Skyline Design Guide
 
-**Silo TV client navigation redesign — tvOS & Android TV**
+**Auger TV navigation design (tvOS)**
 
-Status: approved direction (chosen over "Rail" and "Stage" candidates)
-Rev 2 (2026-06-12): the Featured hero carousel is removed in favor of the
-**focus marquee** (`a4`/`a5`), and the scope dropdown becomes a focus-opened
-**cascading switcher** with a sections flyout (`a6`). The first pill is renamed
-`Featured` → `Browse` to match.
-Rev 3 (2026-06-12): the **`All <Type>` merged scope is removed** (user decision).
-Multi-library types are always scoped to exactly one library; the cascading
-selector (§5.3) is how the user picks/switches which library — there is no
-merged view. References to `All <Type>` below are superseded (see §3.1, §5.3, §9).
-Mockups: `docs/tvos-redesign-mockups/` (`a1`–`a6` + rendered PNGs in `shots/`)
-Scope: this guide covers the 10-foot clients only (tvOS + Android TV). Phone/tablet/macOS unchanged.
+Status: approved direction
+Rev 2 (2026-06-12): the Featured hero carousel is replaced by the
+**focus marquee**, and the scope dropdown becomes a focus-opened
+**cascading switcher** with a sections flyout. The first pill is named
+`Browse`.
+Rev 3 (2026-06-12): the **`All <Type>` merged scope is removed**.
+Multi-library types are always scoped to one library; the cascading
+selector (§5.3) switches libraries with no merged view.
+Scope: Apple TV (tvOS) 10-foot interface.
 
 ---
 
@@ -61,7 +59,7 @@ already follow this rule. Android text sizes below assume the TV app's global
 
 ```
 TOP BAR (persistent on all root screens)
-├─ SILO wordmark                            (left, non-interactive)
+├─ AUGER wordmark                           (left, non-interactive)
 ├─ Search (icon)                            (left of the tabs)
 ├─ Tabs (center):
 │   Home
@@ -551,7 +549,7 @@ stays empty (backdrop scrim only) until the first row has content.
 
 1. ~~Should `All <Type>` be server-side or client-merged?~~ **Resolved (Rev 3): `All <Type>` dropped; single-library scoping only.**
 2. Music tab pill set: confirm `Playlists` exists server-side for TV contexts.
-3. Do we keep the wordmark text or swap in the `SiloWordmark` asset at 26 px cap height?
+3. Do we keep the wordmark text or swap in the `AugerWordmark` asset at 26 px cap height?
 4. Calendar on Android: ship in Phase 3 or cut scope to tvOS-only initially?
 5. Cascade dwell duration: 250 ms is the spec start point — tune on device so
    deliberate landings always open it and bar sweeps never do; confirm the

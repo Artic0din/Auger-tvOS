@@ -1,155 +1,71 @@
 # Repository Guidelines
 
-The project owner decides how this codebase is built. Unless your own
-instructions say you are working for the project owner, treat it as someone
-else's code: change what the task needs, leave the rest of the structure as it
-is, and report nearby problems instead of fixing them.
+Auger is a standalone third-party Apple TV (tvOS) client for Silo servers.
+Change what the task needs, leave unrelated structure intact, and report nearby problems instead of making drive-by edits.
 
 ## Project Structure & Module Organization
 
-This repository contains only the Silo Apple clients. SwiftUI app code lives under `iosApp/iosApp/`, tests live in `iosApp/Tests/`, Top Shelf code lives in `iosApp/TopShelf/`, resources live in `iosApp/Resources/`, and generated Xcode structure is controlled by `iosApp/project.yml`. Apple TV playback notes live in `docs/tvos-player/`; release automation lives in `fastlane/`.
+SwiftUI app code lives under `iosApp/iosApp/` (with Apple TV views in `iosApp/iosApp/tvOS/`), unit tests live in `iosApp/Tests/`, the tvOS Top Shelf extension lives in `iosApp/TopShelf/`, shared resources and bundled licenses live in `iosApp/Resources/`, and generated Xcode structure is controlled by `iosApp/project.yml`.
+Playback notes live in `docs/tvos-player/`, tvOS focus guidance lives in `docs/tvos-focus.md`, release documentation lives in `docs/release/`, and release automation lives in `fastlane/`.
 
-## Silo Workspace Context
+## Server Compatibility Boundary
 
-This repository is part of a broader multi-repo Silo workspace. The sibling
-repositories are usually checked out alongside this repository.
-
-- `silo-apple` owns iOS, tvOS, and macOS client code only.
-- `silo-server` owns the Go backend, the web app and web admin UI (`web/`), API
-  contracts, auth/session behavior, catalog/scanner/playback services, database
-  migrations, Jellyfin compatibility, and host-side plugin runtime.
-- `silo-android` owns the Android phone and TV clients.
-- `silo-roku` owns the Roku client.
-
-When a task touches auth, API models, playback/session state, library browsing,
-metadata display, or server-driven behavior, check whether the server and the
-other clients need coordinated changes. Do not force server concerns into this
-repo.
-
-## Cross-client parity
-
-Silo has four clients: Apple (this repository), Android (`silo-android`), Roku
-(`silo-roku`), and Web (`silo-server`, under `web/`). A feature, fix, or other
-change a user can notice in one client is not done until each other client has
-been handled or ruled out. The change's author owns this, whether a person or
-an agent.
-
-For each other client:
-
-- Rule it out when the change is specific to this platform (a tvOS focus fix,
-  a Mac menu command), the other client already behaves correctly, or the
-  feature is outside that client's scope (for example Roku's deferred features
-  in `silo-roku/docs/spec.md`, or ebooks on a TV client). Note the reason.
-- Otherwise, open an issue in that client's repository at minimum. Search its
-  issues first and add to an existing one rather than filing a duplicate. Title
-  it `Parity: <behavior> (from Silo-Server/silo-apple#NNN)`, describe what users
-  should get, link this pull request, and point to the code that implements it
-  here. A parity issue follows up work already in review or merged, so it goes
-  in Issues, not Discussions → Ideas.
-- Also open a pull request there when you can build and verify that client and
-  its contribution rules let you open one. Link it from the issue.
-
-Open parity issues when this pull request opens, so each one can link it. List
-the outcome on the pull request's `Other clients:` line, one entry per client:
-`Other clients: Android Silo-Server/silo-android#NNN; Roku N/A (tvOS-only focus fix); Web Silo-Server/silo-server#NNN`.
-
-Agents open the parity issues without asking and apply the Writing rules below
-to them. Ask the developer before opening a pull request in another
-repository; approval to open one here does not cover the others.
+Auger talks to self-hosted Silo servers over `/api/v2`.
+Keep wire-protocol names that Silo Server expects unchanged: Bonjour service types (`_silopair._tcp`, `_silocast._tcp`, `_silo._tcp`), HTTP headers (`X-Silo-Client`, `X-Silo-Client-Version`, `X-Silo-Client-Channel`), the native OAuth callback scheme (`org.siloserver.silo`), and incoming `silo://` deep-link compatibility alongside Auger's own `auger://` scheme.
+Auger identifies itself as `X-Silo-Client: Auger`, uses the `com.artic0din.auger` identifier namespace (`com.artic0din.auger.topshelf`, `group.com.artic0din.auger`, `com.artic0din.auger.shared`), and sends diagnostics only to the user's own Silo server (never to a third-party hosted collector).
 
 ## Build, Test, and Development Commands
 
-- `cd iosApp && xcodegen generate` regenerates `Silo.xcodeproj` from `project.yml`; do this after target or source layout changes.
-- Use the `mac-builder` skill's local simulator helper for iOS/tvOS build, boot,
-  install, launch, and verification. Reuse the task's established simulator and
-  preserve signing and keychain entitlements for authenticated runs.
-- Use scheme `SiloTV` with a tvOS simulator destination for tvOS builds.
-- Use scheme `SiloMac` with `platform=macOS` for macOS builds.
-
-Follow `mac-builder` host routing for local and remote builds. Simulator boot and
-reasonable build recovery are part of an authorized run; ask only for an ambiguous
-target or a change that would lose protected state. Unsigned compilation with
-`CODE_SIGNING_ALLOWED=NO` is compile-only evidence; do not install that artifact
-for an authenticated run. See `docs/mac-builder.md` for setup and background.
+- `cd iosApp && xcodegen generate` regenerates `Auger.xcodeproj` from `project.yml`.
+  Run this after target, signing, or source layout changes instead of hand-editing generated `.xcodeproj` files.
+- Build unsigned for tvOS simulator:
+  `xcodebuild build -project Auger.xcodeproj -scheme Auger -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' CODE_SIGN_IDENTITY='' CODE_SIGNING_ALLOWED=NO`
+- Run unit tests on tvOS simulator (ad-hoc signed for Keychain tests):
+  `xcodebuild test -project Auger.xcodeproj -scheme Auger -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' CODE_SIGN_ALLOWED=YES CODE_SIGN_IDENTITY=-`
+- Unsigned compilation with `CODE_SIGNING_ALLOWED=NO` is compile-only evidence; do not install that artifact for an authenticated simulator run.
+- See `docs/mac-builder.md` if building on a remote Mac host.
 
 ## Coding Style & Naming Conventions
 
-Use Swift 5 and SwiftUI naming conventions. Types use `PascalCase`; functions and properties use `camelCase`. Keep platform-specific code under the existing `iOS`, `tvOS`, or `macOS` folders and update `project.yml` instead of hand-editing generated `.xcodeproj` files. Preserve existing Apple bundle IDs and keychain groups during this migration for TestFlight continuity.
+Use Swift 5 and SwiftUI naming conventions.
+Types use `PascalCase`; functions and properties use `camelCase`.
+Keep Apple TV UI under `iosApp/iosApp/tvOS/` and update `iosApp/project.yml` for any target or resource changes.
 
-For tvOS focus work, read `docs/tvos-focus.md` before editing navigation,
-menus, grids, or custom controls. Prefer a stable native focus graph or a
-single composite focus owner; do not mix row-level focusable controls with
-manual directional focus mutation.
+For tvOS focus work, read `docs/tvos-focus.md` before editing navigation, menus, grids, or custom controls.
+Prefer a stable native focus graph or a single composite focus owner; do not mix row-level focusable controls with manual directional focus mutation.
+
+All user-facing copy in paths listed in `scripts/ci/catalog-text-paths.txt` must come from `iosApp/iosApp/Localizable.xcstrings` and be verified by `python3 scripts/ci/check-catalog-text.py` and `bash scripts/ci/check-string-localized.sh`.
 
 ## Testing Guidelines
 
-Apple tests use XCTest under `iosApp/Tests/`. Add focused regression tests when
-they meaningfully protect changed behavior; use rendered checks for visual changes.
-Avoid tests that only mirror wording or implementation. Run relevant checks while
-iterating and complete repository-required gates at their stated milestone.
-Broaden or repeat testing only for new changes, failures, or unresolved risks.
+Tests use XCTest under `iosApp/Tests/` (`AugerTests`, with `-module-alias Silo=Auger`).
+Add focused regression tests when they protect changed behavior, and use rendered checks on an Apple TV simulator or device for visual changes.
+Avoid tests that only mirror wording or implementation.
+Also run the CI script checks in `.github/workflows/ci-scripts.yml` when touching CI scripts, Fastlane lanes, or localization/API guards.
 
 ## Writing
 
-Run a final readability pass on every human-facing issue, pull request,
-document, or status update.
+Run a final readability pass on every human-facing issue, pull request, document, or status update.
 
 - Lead with the outcome.
 - Use concrete, plain language and active voice.
 - Cut filler, stock framing, repetition, and promotional claims.
-- Preserve meaning, evidence, citations, uncertainty, and established
-  terminology.
-- Never rewrite exact quotations, commands, logs, identifiers, API names, or
-  contractual language.
-- Match the tone to the audience and use only formatting that improves
-  readability.
+- Preserve meaning, evidence, citations, uncertainty, and established terminology.
+- Never rewrite exact quotations, commands, logs, identifiers, API names, or contractual language.
 
 ## Pull requests
 
 Never create a pull request unless the developer explicitly asks for one.
 
-Use a Conventional Commit title in plain language. Start the body with the
-problem, explain the solution next, and end with the required AI disclosure,
-including the exact model identifier, agent harness, and any other AI tooling.
-Include repository-required issue links, validation evidence, risks, and
-follow-up work.
+Use a Conventional Commit title in plain language.
+Start the body with the problem, explain the solution next, and include linked issues, validation evidence, risks, and follow-up work.
 
-- Keep one concern per pull request. Split changes that solve independent
-  problems or can be reviewed and shipped separately.
-- A feature (`feat`) pull request from someone without triage or write access
-  must link an issue in the same repository labeled `accepted`; the
-  contribution-gate workflow closes it otherwise. Pull requests from people who
-  have never had one merged in a Silo repository are closed the same way, even
-  when a maintainer asked for them; the maintainer then reopens them. For
-  anyone without triage or write access, the gate also closes drafts, and the
-  evidence-deadline workflow closes a pull request whose `Evidence` check still
-  asks for evidence 24 hours after it opens, so open it ready for review and
-  publish evidence right away. Feature ideas go in Discussions → Ideas, not
-  issues.
-- Every pull request must include evidence. One that changes what a user sees
-  shows the change, as
-  [Show visible changes](CONTRIBUTING.md#show-visible-changes) defines. That
-  covers UI and UX changes and changes to which items appear or what they show,
-  such as search results, home sections, recommendations, sorting, filtering,
-  metadata, or artwork. Use before-and-after captures of the same screen with the
-  same data, and a short recording when motion, timing, or focus matters.
-  Capture each device the change can reach: iPhone, iPhone Duo (folded and
-  open), iPad, Mac, and Apple TV, or say why a device is unaffected. A change
-  nobody sees shows the steps run, the build or commit, and trimmed test results.
-- Attach evidence on GitHub under the PR body's Evidence heading, or publish it
-  with `npx @silo-server/evidence publish <folder> --pr <number>` and put its
-  `Evidence:` link there. Only Silo maintainers and the pull request's author can
-  open a published page. GitHub has no API for attaching images to a pull
-  request, so an agent either publishes with the CLI or gives the developer the
-  captures to attach. Check media for private information before it goes on
-  GitHub. When publishing exits 4, ask the developer to run
-  `npx @silo-server/evidence login`; never approve that login or read the saved
-  key. Never commit PR-only assets such as `.github/pr-assets/`.
-- When babysitting a pull request, poll checks and review comments created
-  after the last push. Verify bot findings against the source, fix real issues,
-  and dismiss false positives with a written reason. Remain quiet when nothing
-  new has appeared. Stop when the latest commit is green.
+- Keep one concern per pull request.
+- Every pull request must include evidence: before-and-after Apple TV captures (and a short recording when motion, timing, or focus matters) for visible changes, or the exact commands, commit SHA, and trimmed test results for non-visible changes.
+- Check media for private information before attaching it to GitHub, and never commit PR-only assets to the repository.
 
 ## Security & Configuration Tips
 
-Do not commit local signing overrides. Start from `iosApp/Signing/Local.xcconfig.sample`, create `iosApp/Signing/Local.xcconfig`, and regenerate with XcodeGen after signing changes. Keep App Store Connect keys, Match repo URLs, and team identifiers in environment variables only.
+Do not commit local signing overrides.
+Start from `iosApp/Signing/Local.xcconfig.sample`, create `iosApp/Signing/Local.xcconfig`, and regenerate with XcodeGen after signing changes.
+Keep App Store Connect keys, Match repo URLs, and team identifiers in environment variables only.
