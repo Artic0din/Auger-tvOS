@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        This fork focuses on Apple TV (tvOS) and drops iOS and macOS work. Requests that require new server or API behavior belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose). Read [CONTRIBUTING.md](https://github.com/Artic0din/Auger-tvOS/blob/main/CONTRIBUTING.md) first.
+        Requests that require new server or API behavior belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose). Read [CONTRIBUTING.md](https://github.com/Artic0din/Auger-tvOS/blob/main/CONTRIBUTING.md) first.
   - type: textarea
     id: problem
     attributes:

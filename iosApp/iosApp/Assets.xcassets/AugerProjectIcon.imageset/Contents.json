@@ -1,0 +1,23 @@
+{
+  "images": [
+    {
+      "filename": "auger-project-icon-128.png",
+      "idiom": "universal",
+      "scale": "1x"
+    },
+    {
+      "filename": "auger-project-icon-256.png",
+      "idiom": "universal",
+      "scale": "2x"
+    },
+    {
+      "filename": "auger-project-icon-512.png",
+      "idiom": "universal",
+      "scale": "3x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

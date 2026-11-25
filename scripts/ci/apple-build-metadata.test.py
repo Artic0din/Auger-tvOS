@@ -16,13 +16,12 @@ spec.loader.exec_module(metadata)
 QUALIFIED_SPM_LOCK = '40e3e0fbe264adac749a1f7db3f91a311e67f6419eeecad6bd4d88c07efd9410'
 QUALIFIED_SPM_PROJECT = 'b698ee86dc410c8ada9251778a655f5428b2ea663ccfc8ba1291f180aa472eca'
 QUALIFIED_SPM_TOOLCHAIN = '5e23d2022187a1fa502ad4a6'
-IPHONE = [{'identifier': metadata.TEST_SIMULATORS['Silo'][1]}]
-APPLE_TV = [{'identifier': metadata.TEST_SIMULATORS['SiloTV'][1]}]
-DUO = [{'identifier': 'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo'}]
+APPLE_TV = [{'identifier': metadata.TEST_SIMULATORS['Auger'][1]}]
+OTHER_TV = [{'identifier': 'com.apple.CoreSimulator.SimDeviceType.Apple-TV-Other'}]
 
 
-def ios_runtime(version, build, devices=IPHONE, **changes):
-    return {'identifier': 'com.apple.CoreSimulator.SimRuntime.iOS-' + version.replace('.', '-'),
+def tvos_runtime(version, build, devices=APPLE_TV, **changes):
+    return {'identifier': 'com.apple.CoreSimulator.SimRuntime.tvOS-' + version.replace('.', '-'),
             'version': version, 'buildversion': build, 'isAvailable': True,
             'supportedDeviceTypes': devices, **changes}
 
@@ -36,12 +35,12 @@ class MetadataTests(unittest.TestCase):
                 return {('xcodebuild', '-version'): 'Xcode 27.0\nBuild version 27A266a',
                         ('uname', '-m'): 'arm64',
                         ('xcrun', '--sdk', sdk, '--show-sdk-version'): '27.0',
-                        ('xcrun', '--sdk', sdk, '--show-sdk-build-version'): '24A100'}[args]
+                        ('xcrun', '--sdk', sdk, '--show-sdk-build-version'): '24J100'}[args]
             with self.subTest(scheme=scheme), patch.object(metadata, 'command', command):
                 result = metadata.device_toolchain(scheme)
             self.assertEqual(result['sdk'], sdk)
             self.assertEqual(result['sdk_version'], '27.0')
-            self.assertEqual(result['sdk_build'], '24A100')
+            self.assertEqual(result['sdk_build'], '24J100')
             self.assertEqual(len(calls), 4)
             self.assertNotIn('runtime_build', result)
 
@@ -52,42 +51,40 @@ class MetadataTests(unittest.TestCase):
             (root / metadata.LOCK).write_text('locked packages')
             (root / 'iosApp/project.yml').write_text('project')
             toolchain = {'xcode_version': '27.0', 'xcode_build': '27A266a',
-                         'architecture': 'arm64', 'sdk': 'iphoneos',
-                         'sdk_version': '27.0', 'sdk_build': '24A100'}
+                         'architecture': 'arm64', 'sdk': 'appletvos',
+                         'sdk_version': '27.0', 'sdk_build': '24J100'}
             with patch.object(metadata, 'command', return_value='a' * 40), \
                     patch.object(metadata, 'toolchains', side_effect=AssertionError('simulator query')), \
                     patch.object(metadata, 'device_toolchain', return_value=toolchain):
-                original = metadata.metadata(root, {}, device_scheme='Silo-device')
-                self.assertEqual(json.loads(original['toolchain_json']), {'Silo-device': toolchain})
+                original = metadata.metadata(root, {}, device_scheme='Auger-device')
+                self.assertEqual(json.loads(original['toolchain_json']), {'Auger-device': toolchain})
                 for key, value in [('xcode_version', '27.1'), ('xcode_build', '27B100'),
-                                   ('architecture', 'x86_64'), ('sdk', 'appletvos'),
-                                   ('sdk_version', '27.1'), ('sdk_build', '24A101')]:
+                                   ('architecture', 'x86_64'), ('sdk', 'appletvsimulator'),
+                                   ('sdk_version', '27.1'), ('sdk_build', '24J101')]:
                     with self.subTest(changed=key), patch.object(
                             metadata, 'device_toolchain', return_value={**toolchain, key: value}):
-                        changed = metadata.metadata(root, {}, device_scheme='Silo-device')
+                        changed = metadata.metadata(root, {}, device_scheme='Auger-device')
                         self.assertNotEqual(original['toolchain_key'], changed['toolchain_key'])
-                other = metadata.metadata(root, {}, device_scheme='SiloTV-device')
-                self.assertNotEqual(original['toolchain_key'], other['toolchain_key'])
 
     def test_device_metadata_rejects_missing_or_malformed_sdk_and_architecture(self):
         valid = {('xcodebuild', '-version'): 'Xcode 27.0\nBuild version 27A266a',
                  ('uname', '-m'): 'arm64',
-                 ('xcrun', '--sdk', 'iphoneos', '--show-sdk-version'): '27.0',
-                 ('xcrun', '--sdk', 'iphoneos', '--show-sdk-build-version'): '24A100'}
+                 ('xcrun', '--sdk', 'appletvos', '--show-sdk-version'): '27.0',
+                 ('xcrun', '--sdk', 'appletvos', '--show-sdk-build-version'): '24J100'}
         for args, value in [(('uname', '-m'), ''), (('uname', '-m'), 'unknown'),
-                            (('xcrun', '--sdk', 'iphoneos', '--show-sdk-version'), ''),
-                            (('xcrun', '--sdk', 'iphoneos', '--show-sdk-version'), '27.0\nother'),
-                            (('xcrun', '--sdk', 'iphoneos', '--show-sdk-build-version'), ''),
-                            (('xcrun', '--sdk', 'iphoneos', '--show-sdk-build-version'), 'bad/build')]:
+                            (('xcrun', '--sdk', 'appletvos', '--show-sdk-version'), ''),
+                            (('xcrun', '--sdk', 'appletvos', '--show-sdk-version'), '27.0\nother'),
+                            (('xcrun', '--sdk', 'appletvos', '--show-sdk-build-version'), ''),
+                            (('xcrun', '--sdk', 'appletvos', '--show-sdk-build-version'), 'bad/build')]:
             with self.subTest(args=args, value=value), patch.object(
                     metadata, 'command', side_effect=lambda *call: {**valid, args: value}[call]):
                 with self.assertRaisesRegex(ValueError, 'Device SDK or architecture'):
-                    metadata.device_toolchain('Silo-device')
+                    metadata.device_toolchain('Auger-device')
 
     def test_device_profiles_cannot_be_used_for_simulator_proof_or_benchmarks(self):
-        for option in ('--benchmark', '--proof=Silo'):
+        for option in ('--benchmark', '--proof=Auger'):
             with self.subTest(option=option), patch.object(sys, 'argv',
-                    ['metadata', '--device-scheme=Silo-device', option]), \
+                    ['metadata', '--device-scheme=Auger-device', option]), \
                     patch.object(metadata, 'metadata', side_effect=AssertionError('metadata queried')):
                 with self.assertRaises(SystemExit) as error:
                     metadata.main()
@@ -169,14 +166,14 @@ class MetadataTests(unittest.TestCase):
     def test_command_recovers_from_a_stalled_attempt(self):
         with patch.object(metadata.subprocess, 'check_output',
                           side_effect=[subprocess.TimeoutExpired(('xcrun',), 60), '27.1\n']) as run:
-            self.assertEqual(metadata.command('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'), '27.1')
+            self.assertEqual(metadata.command('xcrun', '--sdk', 'appletvsimulator', '--show-sdk-version'), '27.1')
         self.assertEqual(run.call_count, 2)
 
     def test_command_does_not_retry_a_failed_command(self):
         with patch.object(metadata.subprocess, 'check_output',
                           side_effect=subprocess.CalledProcessError(1, ('xcrun',))) as run:
             with self.assertRaisesRegex(RuntimeError, 'Build metadata command failed: xcrun'):
-                metadata.command('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version')
+                metadata.command('xcrun', '--sdk', 'appletvsimulator', '--show-sdk-version')
         self.assertEqual(run.call_count, 1)
 
     def test_command_failure_names_only_the_tool(self):
@@ -198,29 +195,24 @@ class MetadataTests(unittest.TestCase):
 
     def test_runtime_must_match_platform_sdk_and_be_available(self):
         runtimes = {'runtimes': [
-            ios_runtime('27.0', '24A100'),
-            {'identifier': 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0', 'version': '27.0',
-             'buildversion': '24J100', 'isAvailable': False, 'supportedDeviceTypes': APPLE_TV},
-            {'identifier': 'com.apple.CoreSimulator.SimRuntime.tvOS-26-0', 'version': '26.0',
-             'buildversion': '23J100', 'isAvailable': True, 'supportedDeviceTypes': APPLE_TV}]}
+            tvos_runtime('27.0', '24J100', isAvailable=False),
+            tvos_runtime('26.0', '23J100', isAvailable=True)]}
         def command(*args):
             if args == ('xcodebuild', '-version'):
                 return 'Xcode 27.0\nBuild version 27A266a'
             if args == ('uname', '-m'):
                 return 'arm64'
             if args[-1] == '--show-sdk-build-version':
-                return '24A100'
+                return '24J100'
             if args == ('xcrun', 'simctl', 'list', 'runtimes', '--json'):
                 return json.dumps(runtimes)
             return '27.0'
         with patch.object(metadata, 'command', command):
             tools = metadata.toolchains()
-        self.assertEqual(tools['Silo']['runtime_build'], '24A100')
-        self.assertEqual(tools['SiloTV']['runtime_build'], '')
-        self.assertNotIn('runtime_build', tools['SiloMac'])
+        self.assertEqual(tools['Auger']['runtime_build'], '')
 
     def runtime_inventory(self, **changes):
-        return {'runtimes': [{**ios_runtime('27.0', '24A100'), **changes}]}
+        return {'runtimes': [{**tvos_runtime('27.0', '24J100'), **changes}]}
 
     def live_tool_command(self, *args, cwd=None):
         if args == ('xcodebuild', '-version'):
@@ -232,23 +224,23 @@ class MetadataTests(unittest.TestCase):
         if args == ('uname', '-m'):
             return 'arm64'
         if args[-1] == '--show-sdk-build-version':
-            return '24A100'
+            return '24J100'
         if args[-1] == '--show-sdk-version':
             return '27.0'
         raise AssertionError('Unexpected live tool command: ' + repr(args))
 
     def test_prepared_runtime_uses_the_selected_entry_and_preserves_live_tool_reads(self):
-        selected = 'com.apple.CoreSimulator.SimRuntime.iOS-27-0-selected'
+        selected = 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0-selected'
         inventory = self.runtime_inventory()
         inventory['runtimes'].append({**inventory['runtimes'][0], 'identifier': selected,
-                                      'buildversion': '24A200'})
+                                      'buildversion': '24J200'})
         with tempfile.TemporaryDirectory() as folder:
             capture = Path(folder) / 'runtimes.json'
             capture.write_text(json.dumps(inventory))
             with patch.object(metadata, 'command', side_effect=self.live_tool_command) as run:
-                tools = metadata.toolchains(capture, 'Silo', selected)
-        self.assertEqual(tools['Silo']['runtime_build'], '24A200')
-        self.assertEqual(tools['Silo']['xcode_build'], '27A266a')
+                tools = metadata.toolchains(capture, 'Auger', selected)
+        self.assertEqual(tools['Auger']['runtime_build'], '24J200')
+        self.assertEqual(tools['Auger']['xcode_build'], '27A266a')
         for sdk in metadata.SDKS.values():
             self.assertIn(('xcrun', '--sdk', sdk, '--show-sdk-version'),
                           [call.args for call in run.call_args_list])
@@ -256,26 +248,25 @@ class MetadataTests(unittest.TestCase):
                          [call.args for call in run.call_args_list])
 
     def test_prepared_runtime_rejects_missing_unavailable_ambiguous_and_stale_identity(self):
-        identifier = 'com.apple.CoreSimulator.SimRuntime.iOS-27-0'
-        invalid = [({}, 'Silo', identifier), ({'runtimes': {}}, 'Silo', identifier),
-                   ({'runtimes': [None]}, 'Silo', identifier),
-                   (self.runtime_inventory(isAvailable=False), 'Silo', identifier),
-                   (self.runtime_inventory(isAvailable=1), 'Silo', identifier),
-                   (self.runtime_inventory(version='26.0'), 'Silo', identifier),
-                   (self.runtime_inventory(version='27.1'), 'Silo', identifier),
-                   (self.runtime_inventory(supportedDeviceTypes=DUO), 'Silo', identifier),
-                   (self.runtime_inventory(supportedDeviceTypes=None), 'Silo', identifier),
-                   (self.runtime_inventory(buildversion=''), 'Silo', identifier),
-                   (self.runtime_inventory(buildversion='24A100\nother=value'), 'Silo', identifier),
-                   (self.runtime_inventory(), 'SiloTV', identifier),
-                   (self.runtime_inventory(), 'SiloMac', identifier),
-                   (self.runtime_inventory(), 'Silo', ''),
-                   (self.runtime_inventory(), 'Silo', identifier + '-other'),
-                   ({'runtimes': self.runtime_inventory()['runtimes'] * 2}, 'Silo', identifier)]
+        identifier = 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0'
+        invalid = [({}, 'Auger', identifier), ({'runtimes': {}}, 'Auger', identifier),
+                   ({'runtimes': [None]}, 'Auger', identifier),
+                   (self.runtime_inventory(isAvailable=False), 'Auger', identifier),
+                   (self.runtime_inventory(isAvailable=1), 'Auger', identifier),
+                   (self.runtime_inventory(version='26.0'), 'Auger', identifier),
+                   (self.runtime_inventory(version='27.1'), 'Auger', identifier),
+                   (self.runtime_inventory(supportedDeviceTypes=OTHER_TV), 'Auger', identifier),
+                   (self.runtime_inventory(supportedDeviceTypes=None), 'Auger', identifier),
+                   (self.runtime_inventory(buildversion=''), 'Auger', identifier),
+                   (self.runtime_inventory(buildversion='24J100\nother=value'), 'Auger', identifier),
+                   (self.runtime_inventory(), 'UnknownScheme', identifier),
+                   (self.runtime_inventory(), 'Auger', ''),
+                   (self.runtime_inventory(), 'Auger', identifier + '-other'),
+                   ({'runtimes': self.runtime_inventory()['runtimes'] * 2}, 'Auger', identifier)]
         with tempfile.TemporaryDirectory() as folder:
             capture = Path(folder) / 'runtimes.json'
             with self.assertRaises(FileNotFoundError):
-                metadata.prepared_runtimes(capture, 'Silo', identifier, '27.0')
+                metadata.prepared_runtimes(capture, 'Auger', identifier, '27.0')
             for inventory, scheme, selected in invalid:
                 with self.subTest(inventory=inventory, scheme=scheme, selected=selected):
                     capture.write_text(json.dumps(inventory))
@@ -284,58 +275,54 @@ class MetadataTests(unittest.TestCase):
             for text in ('{', '{"runtimes": [], "runtimes": []}'):
                 capture.write_text(text)
                 with self.subTest(text=text), self.assertRaises(ValueError):
-                    metadata.prepared_runtimes(capture, 'Silo', identifier, '27.0')
-            # A newer runtime that runs the device supersedes the selection.
+                    metadata.prepared_runtimes(capture, 'Auger', identifier, '27.0')
             capture.write_text(json.dumps({'runtimes': [*self.runtime_inventory()['runtimes'],
-                                                        ios_runtime('27.1', '24A200')]}))
+                                                        tvos_runtime('27.1', '24J200')]}))
             with self.assertRaises(ValueError):
-                metadata.prepared_runtimes(capture, 'Silo', identifier, '27.1')
+                metadata.prepared_runtimes(capture, 'Auger', identifier, '27.1')
 
     def test_changed_current_sdk_invalidates_the_prepared_runtime(self):
         with tempfile.TemporaryDirectory() as folder:
             capture = Path(folder) / 'runtimes.json'
             capture.write_text(json.dumps(self.runtime_inventory()))
             def changed_sdk(*args):
-                if args == ('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'):
+                if args == ('xcrun', '--sdk', 'appletvsimulator', '--show-sdk-version'):
                     return '28.0'
                 return self.live_tool_command(*args)
             with patch.object(metadata, 'command', changed_sdk), self.assertRaises(ValueError):
-                metadata.toolchains(capture, 'Silo', 'com.apple.CoreSimulator.SimRuntime.iOS-27-0')
+                metadata.toolchains(capture, 'Auger', 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0')
 
     def test_tests_use_the_newest_runtime_in_the_sdk_release_that_runs_the_device(self):
-        # Xcode 27.1's iOS 27.1 runtime runs only the iPhone Duo.
-        runtimes = [ios_runtime('26.4', '23E100'), ios_runtime('27.0', '24A434'),
-                    ios_runtime('27.1', '24A944', devices=DUO), ios_runtime('28.0', '25A100'),
-                    ios_runtime('27.0.1', '24A500', isAvailable=False)]
-        self.assertEqual([runtime['buildversion'] for runtime in metadata.test_runtimes(runtimes, 'Silo', '27.1')],
-                         ['24A434'])
-        self.assertEqual(metadata.test_runtimes(runtimes, 'Silo', '26.0'), [])
-        self.assertEqual(metadata.test_runtimes(runtimes, 'SiloTV', '27.1'), [])
+        runtimes = [tvos_runtime('26.4', '23J100'), tvos_runtime('27.0', '24J434'),
+                    tvos_runtime('27.1', '24J944', devices=OTHER_TV), tvos_runtime('28.0', '25J100'),
+                    tvos_runtime('27.0.1', '24J500', isAvailable=False)]
+        self.assertEqual([runtime['buildversion'] for runtime in metadata.test_runtimes(runtimes, 'Auger', '27.1')],
+                         ['24J434'])
+        self.assertEqual(metadata.test_runtimes(runtimes, 'Auger', '26.0'), [])
 
         def sdk_27_1(*args):
-            if args == ('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'):
+            if args == ('xcrun', '--sdk', 'appletvsimulator', '--show-sdk-version'):
                 return '27.1'
             if args == ('xcrun', 'simctl', 'list', 'runtimes', '--json'):
                 return json.dumps({'runtimes': runtimes})
             return self.live_tool_command(*args)
         with patch.object(metadata, 'command', sdk_27_1):
             live = metadata.toolchains()
-        self.assertEqual((live['Silo']['sdk_version'], live['Silo']['runtime_version'], live['Silo']['runtime_build']),
-                         ('27.1', '27.0', '24A434'))
+        self.assertEqual((live['Auger']['sdk_version'], live['Auger']['runtime_version'], live['Auger']['runtime_build']),
+                         ('27.1', '27.0', '24J434'))
 
-        # The release job's live discovery and the test job's prepared runtime agree.
         with tempfile.TemporaryDirectory() as folder:
             capture = Path(folder) / 'runtimes.json'
             capture.write_text(json.dumps({'runtimes': runtimes}))
             with patch.object(metadata, 'command', sdk_27_1):
-                simulator = metadata.test_simulator('Silo', capture)
-                prepared = metadata.toolchains(capture, 'Silo', simulator['runtime'])
-            self.assertEqual(simulator, {'runtime': 'com.apple.CoreSimulator.SimRuntime.iOS-27-0',
-                                         'device_type': 'com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro'})
-            self.assertEqual(prepared['Silo'], live['Silo'])
+                simulator = metadata.test_simulator('Auger', capture)
+                prepared = metadata.toolchains(capture, 'Auger', simulator['runtime'])
+            self.assertEqual(simulator, {'runtime': 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0',
+                                         'device_type': 'com.apple.CoreSimulator.SimDeviceType.Apple-TV-4K-3rd-generation-4K'})
+            self.assertEqual(prepared['Auger'], live['Auger'])
             capture.write_text(json.dumps({'runtimes': runtimes[2:]}))
             with patch.object(metadata, 'command', sdk_27_1):
-                self.assertEqual(metadata.test_simulator('Silo', capture)['runtime'], '')
+                self.assertEqual(metadata.test_simulator('Auger', capture)['runtime'], '')
 
     def test_final_metadata_recomputes_source_config_dirty_and_all_sdk_builds(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -347,8 +334,8 @@ class MetadataTests(unittest.TestCase):
             project.write_text('original project')
             capture = root / 'runtime.json'
             capture.write_text(json.dumps(self.runtime_inventory()))
-            env = {'SCHEME': 'Silo', 'SILO_TEST_RUNTIME_IDENTIFIER':
-                   'com.apple.CoreSimulator.SimRuntime.iOS-27-0'}
+            env = {'SCHEME': 'Auger', 'SILO_TEST_RUNTIME_IDENTIFIER':
+                   'com.apple.CoreSimulator.SimRuntime.tvOS-27-0'}
             with patch.object(metadata, 'command', side_effect=self.live_tool_command):
                 original = metadata.metadata(root, env, capture)
             lock.write_text('changed lock')
@@ -395,23 +382,19 @@ class MetadataTests(unittest.TestCase):
             subprocess.run(args, cwd=root, check=True, capture_output=True)
         return source
 
-    def proof_env(self, root, capture, scheme='Silo'):
+    def proof_env(self, root, capture, scheme='Auger'):
         return {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF_NAME': 'main',
                 'GITHUB_SHA': metadata.command('git', 'rev-parse', 'HEAD', cwd=root),
-                'GITHUB_REPOSITORY': 'Silo-Server/silo-apple', 'GITHUB_RUN_ID': '100',
+                'GITHUB_REPOSITORY': 'Artic0din/Auger-tvOS', 'GITHUB_RUN_ID': '100',
                 'GITHUB_RUN_ATTEMPT': '1', 'SILO_FULL_SUITE': 'true', 'SCHEME': scheme,
                 'SILO_COMPILATION_CACHE_ENABLED': 'false', 'SILO_BENCHMARK_SOURCE_REF': '',
                 'SILO_PREPARED_SIMULATOR_RUNTIMES': str(capture),
-                'SILO_TEST_RUNTIME_IDENTIFIER': 'com.apple.CoreSimulator.SimRuntime.' +
-                    ('tvOS-27-0' if scheme == 'SiloTV' else 'iOS-27-0')}
+                'SILO_TEST_RUNTIME_IDENTIFIER': 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0'}
 
     def proof_inventory(self):
-        return {'runtimes': [*self.runtime_inventory()['runtimes'],
-                            {'identifier': 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0',
-                             'version': '27.0', 'buildversion': '24J100', 'isAvailable': True,
-                             'supportedDeviceTypes': APPLE_TV}]}
+        return self.runtime_inventory()
 
-    def test_actual_cli_produces_captured_mobile_proof_and_live_mac_proof(self):
+    def test_actual_cli_produces_captured_tvos_proof(self):
         original_command = metadata.command
         inventory = self.proof_inventory()
         def command(*args, cwd=None):
@@ -438,11 +421,10 @@ class MetadataTests(unittest.TestCase):
                 self.assertEqual(value['fingerprint'], original_command('git', 'rev-parse', 'HEAD^{tree}', cwd=root))
                 self.assertTrue(value['full_suite'])
                 self.assertEqual(value['toolchain']['architecture'], 'arm64')
-                self.assertEqual(value['toolchain']['sdk_build'], '24A100')
+                self.assertEqual(value['toolchain']['sdk_build'], '24J100')
                 queried = ('xcrun', 'simctl', 'list', 'runtimes', '--json') in [call.args for call in run.call_args_list]
-                self.assertEqual(queried, scheme == 'SiloMac')
-                if scheme != 'SiloMac':
-                    self.assertEqual(value['toolchain']['runtime_build'], '24J100' if scheme == 'SiloTV' else '24A100')
+                self.assertFalse(queried)
+                self.assertEqual(value['toolchain']['runtime_build'], '24J100')
 
     def test_actual_cli_rejects_invalid_capture_partial_or_changed_source_without_emitting_proof(self):
         original_command = metadata.command
@@ -451,7 +433,7 @@ class MetadataTests(unittest.TestCase):
                 return original_command(*args, cwd=cwd)
             if args == ('xcrun', 'simctl', 'list', 'runtimes', '--json'):
                 raise AssertionError('Captured proof repeated runtime discovery')
-            if change_sdk and args == ('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'):
+            if change_sdk and args == ('xcrun', '--sdk', 'appletvsimulator', '--show-sdk-version'):
                 return '28.0'
             return self.live_tool_command(*args, cwd=cwd)
         with tempfile.TemporaryDirectory() as folder:
@@ -484,11 +466,11 @@ class MetadataTests(unittest.TestCase):
                 elif case == 'unavailable_runtime':
                     capture.write_text(json.dumps(self.runtime_inventory(isAvailable=False)))
                 elif case == 'wrong_runtime':
-                    env['SILO_TEST_RUNTIME_IDENTIFIER'] = 'com.apple.CoreSimulator.SimRuntime.tvOS-27-0'
+                    env['SILO_TEST_RUNTIME_IDENTIFIER'] = 'com.apple.CoreSimulator.SimRuntime.tvOS-26-0'
                 elif case == 'wrong_scheme':
-                    env['SCHEME'] = 'SiloTV'
+                    env['SCHEME'] = 'OtherScheme'
                 with self.subTest(case=case), patch.dict(os.environ, env), \
-                        patch.object(sys, 'argv', ['metadata', '--root', str(root), '--proof', 'Silo',
+                        patch.object(sys, 'argv', ['metadata', '--root', str(root), '--proof', 'Auger',
                                                   '--output', str(output)]), \
                         patch.object(metadata, 'command', side_effect=command):
                     if case == 'dirty_source':
@@ -519,13 +501,13 @@ class MetadataTests(unittest.TestCase):
                 self.assertEqual(original_command('git', 'rev-parse', 'HEAD', cwd=root), clean['source_sha'])
                 self.assertEqual(original_command('git', 'rev-parse', 'HEAD^{tree}', cwd=root), clean['fingerprint'])
                 with self.assertRaisesRegex(ValueError, 'clean tracked source'):
-                    metadata.proof(clean, root, env, 'Silo')
+                    metadata.proof(clean, root, env, 'Auger')
 
     def test_cache_hit_claim_requires_actual_restore_hit(self):
         result = {'source_sha': 'a' * 40, 'cache_namespace': 'v1',
                   'lock_sha256': 'b' * 64, 'build_config_sha256': 'c' * 64,
-                  'toolchain_json': json.dumps({'Silo': {'xcode_build': '27A266a'}})}
-        env = {'PLATFORM': 'iOS', 'SILO_SPM_CACHE_HIT': 'false', 'SILO_CACHE_MODE': 'dependencies'}
+                  'toolchain_json': json.dumps({'Auger': {'xcode_build': '27A266a'}})}
+        env = {'PLATFORM': 'tvOS', 'SILO_SPM_CACHE_HIT': 'false', 'SILO_CACHE_MODE': 'dependencies'}
         self.assertEqual(metadata.benchmark(result, env)['cache_regime'], 'cold')
         self.assertEqual(metadata.benchmark(result, env)['cache_probe'], 'none')
         env['SILO_SPM_CACHE_HIT'] = 'true'
@@ -541,33 +523,31 @@ class MetadataTests(unittest.TestCase):
 
     def shared_spm_env(self):
         return {'SILO_SPM_CACHE_PROFILE': 'shared_qualified',
-                'GITHUB_EVENT_NAME': 'workflow_dispatch', 'GITHUB_REPOSITORY': 'Silo-Server/silo-apple',
+                'GITHUB_EVENT_NAME': 'workflow_dispatch', 'GITHUB_REPOSITORY': 'Artic0din/Auger-tvOS',
                 'GITHUB_REF': 'refs/heads/fixture', 'SILO_BENCH_VARIANT': 'optimized',
-                'SILO_CACHE_MODE': 'dependencies', 'SCHEME': 'Silo', 'PLATFORM': 'iOS',
-                'SILO_SPM_CACHE_SAVE_OWNER': 'SiloMac'}
+                'SILO_CACHE_MODE': 'dependencies', 'SCHEME': 'Auger', 'PLATFORM': 'tvOS',
+                'SILO_SPM_CACHE_SAVE_OWNER': 'Auger'}
 
     def test_shared_spm_scope_requires_qualified_inputs_and_keeps_the_explicit_owner(self):
-        for scheme in ('Silo', 'SiloTV', 'SiloMac'):
-            for cache_mode in ('dependencies', 'derived_data'):
-                for owner in ('Silo', 'SiloTV', 'SiloMac'):
-                    env = {**self.shared_spm_env(), 'SCHEME': scheme, 'SILO_CACHE_MODE': cache_mode,
-                           'SILO_SPM_CACHE_SAVE_OWNER': owner}
-                    with self.subTest(scheme=scheme, cache_mode=cache_mode, owner=owner):
-                        self.assertEqual(self.spm_scope(env, QUALIFIED_SPM_LOCK, QUALIFIED_SPM_PROJECT,
-                                                                  QUALIFIED_SPM_TOOLCHAIN),
-                            {'spm_cache_profile_requested': 'shared_qualified',
-                             'spm_cache_profile_effective': 'shared_qualified',
-                             'spm_cache_scope': 'shared-qualified-v1', 'spm_cache_save_owner': owner})
+        for cache_mode in ('dependencies', 'derived_data'):
+            env = {**self.shared_spm_env(), 'SCHEME': 'Auger', 'SILO_CACHE_MODE': cache_mode,
+                   'SILO_SPM_CACHE_SAVE_OWNER': 'Auger'}
+            with self.subTest(cache_mode=cache_mode):
+                self.assertEqual(self.spm_scope(env, QUALIFIED_SPM_LOCK, QUALIFIED_SPM_PROJECT,
+                                                          QUALIFIED_SPM_TOOLCHAIN),
+                    {'spm_cache_profile_requested': 'shared_qualified',
+                     'spm_cache_profile_effective': 'shared_qualified',
+                     'spm_cache_scope': 'shared-qualified-v1', 'spm_cache_save_owner': 'Auger'})
 
     def test_unqualified_shared_requests_fall_back_to_the_current_scheme_and_owner(self):
         cases = {'GITHUB_EVENT_NAME': ('pull_request', 'push', 'workflow_call', ''),
                  'GITHUB_REPOSITORY': ('other/silo-apple', ''),
                  'SILO_BENCH_VARIANT': ('baseline', ''), 'SILO_CACHE_MODE': ('off', ''),
-                 'SCHEME': ('SiloDevice', ''), 'SILO_SPM_CACHE_SAVE_OWNER': ('SiloDevice', 'silo', '')}
+                 'SCHEME': ('AugerDevice', ''), 'SILO_SPM_CACHE_SAVE_OWNER': ('AugerDevice', 'auger', '')}
         for key, values in cases.items():
             for value in values:
                 env = {**self.shared_spm_env(), key: value}
-                current_scheme = env['SCHEME'] or 'Silo'
+                current_scheme = env['SCHEME'] or 'Auger'
                 with self.subTest(key=key, value=value):
                     self.assertEqual(self.spm_scope(env, QUALIFIED_SPM_LOCK, QUALIFIED_SPM_PROJECT,
                                                               QUALIFIED_SPM_TOOLCHAIN),
@@ -582,8 +562,8 @@ class MetadataTests(unittest.TestCase):
                 self.assertEqual(self.spm_scope(env, QUALIFIED_SPM_LOCK, QUALIFIED_SPM_PROJECT,
                                                           QUALIFIED_SPM_TOOLCHAIN),
                     {'spm_cache_profile_requested': 'shared_qualified',
-                     'spm_cache_profile_effective': 'scheme', 'spm_cache_scope': 'Silo',
-                     'spm_cache_save_owner': 'Silo'})
+                     'spm_cache_profile_effective': 'scheme', 'spm_cache_scope': 'Auger',
+                     'spm_cache_save_owner': 'Auger'})
 
     def test_either_measured_graph_hash_mismatch_disables_shared_scope(self):
         for lock, project in (('a' * 64, QUALIFIED_SPM_PROJECT),
@@ -593,8 +573,8 @@ class MetadataTests(unittest.TestCase):
                 result = self.spm_scope(self.shared_spm_env(), lock, project, QUALIFIED_SPM_TOOLCHAIN)
                 self.assertEqual(result['spm_cache_profile_requested'], 'shared_qualified')
                 self.assertEqual(result['spm_cache_profile_effective'], 'scheme')
-                self.assertEqual(result['spm_cache_scope'], 'Silo')
-                self.assertEqual(result['spm_cache_save_owner'], 'Silo')
+                self.assertEqual(result['spm_cache_scope'], 'Auger')
+                self.assertEqual(result['spm_cache_save_owner'], 'Auger')
 
     def test_changed_or_missing_toolchain_key_disables_shared_scope(self):
         for key in ('0' * 24, '', QUALIFIED_SPM_TOOLCHAIN.upper()):
@@ -602,17 +582,16 @@ class MetadataTests(unittest.TestCase):
                 self.assertEqual(self.spm_scope(self.shared_spm_env(), QUALIFIED_SPM_LOCK,
                                                           QUALIFIED_SPM_PROJECT, key),
                     {'spm_cache_profile_requested': 'shared_qualified', 'spm_cache_profile_effective': 'scheme',
-                     'spm_cache_scope': 'Silo', 'spm_cache_save_owner': 'Silo'})
+                     'spm_cache_scope': 'Auger', 'spm_cache_save_owner': 'Auger'})
         missing = self.spm_scope(self.shared_spm_env(), QUALIFIED_SPM_LOCK, QUALIFIED_SPM_PROJECT)
         self.assertEqual(missing['spm_cache_profile_effective'], 'scheme')
-        self.assertEqual(missing['spm_cache_scope'], 'Silo')
-        self.assertEqual(missing['spm_cache_save_owner'], 'Silo')
+        self.assertEqual(missing['spm_cache_scope'], 'Auger')
+        self.assertEqual(missing['spm_cache_save_owner'], 'Auger')
 
     def test_scheme_profile_defaults_follow_the_current_scheme_or_platform(self):
-        for env, scheme in (({}, 'SiloMac'), ({'PLATFORM': 'iOS'}, 'Silo'),
-                            ({'PLATFORM': 'tvOS'}, 'SiloTV'), ({'PLATFORM': 'macOS'}, 'SiloMac'),
-                            ({'SCHEME': 'SiloTV', 'PLATFORM': 'iOS',
-                              'SILO_SPM_CACHE_SAVE_OWNER': 'SiloMac'}, 'SiloTV')):
+        for env, scheme in (({}, 'Auger'), ({'PLATFORM': 'tvOS'}, 'Auger'),
+                            ({'SCHEME': 'Auger', 'PLATFORM': 'tvOS',
+                              'SILO_SPM_CACHE_SAVE_OWNER': 'Auger'}, 'Auger')):
             with self.subTest(env=env):
                 self.assertEqual(self.spm_scope(env, QUALIFIED_SPM_LOCK, QUALIFIED_SPM_PROJECT,
                                                           QUALIFIED_SPM_TOOLCHAIN),
@@ -621,10 +600,10 @@ class MetadataTests(unittest.TestCase):
         env = {**self.shared_spm_env(), 'SILO_SPM_CACHE_PROFILE': 'scheme'}
         self.assertEqual(self.spm_scope(env, QUALIFIED_SPM_LOCK, QUALIFIED_SPM_PROJECT,
                                                   QUALIFIED_SPM_TOOLCHAIN)['spm_cache_scope'],
-                         'Silo')
+                         'Auger')
 
     def test_same_repository_pr_main_push_and_inherited_release_events_can_share(self):
-        events = ({'GITHUB_EVENT_NAME': 'pull_request', 'SILO_PULL_REQUEST_HEAD_REPOSITORY': 'Silo-Server/silo-apple'},
+        events = ({'GITHUB_EVENT_NAME': 'pull_request', 'SILO_PULL_REQUEST_HEAD_REPOSITORY': 'Artic0din/Auger-tvOS'},
                   {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF': 'refs/heads/main'},
                   {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF': 'refs/heads/main', 'SILO_RELEASE_GATE': 'true'},
                   {'GITHUB_EVENT_NAME': 'push', 'GITHUB_REF': 'refs/tags/v1.0', 'SILO_RELEASE_GATE': 'true'},
@@ -648,7 +627,7 @@ class MetadataTests(unittest.TestCase):
                 result = self.spm_scope({**self.shared_spm_env(), **changes}, QUALIFIED_SPM_LOCK,
                                         QUALIFIED_SPM_PROJECT, QUALIFIED_SPM_TOOLCHAIN)
                 self.assertEqual(result['spm_cache_profile_effective'], 'scheme')
-                self.assertEqual(result['spm_cache_save_owner'], 'Silo')
+                self.assertEqual(result['spm_cache_save_owner'], 'Auger')
 
     def test_dirty_or_unverified_source_falls_back(self):
         sources = (('', False), ('main', False), ('a' * 39, False), ('A' * 40, False), ('0' * 40, False),
@@ -698,12 +677,12 @@ class MetadataTests(unittest.TestCase):
         result = {'source_sha': 'a' * 40, 'cache_namespace': 'v1', 'source_dirty': 'false',
                   'lock_sha256': QUALIFIED_SPM_LOCK, 'build_config_sha256': 'c' * 64,
                   'toolchain_key': QUALIFIED_SPM_TOOLCHAIN,
-                  'toolchain_json': json.dumps({'Silo': {'xcode_build': '27A266a'}}),
+                  'toolchain_json': json.dumps({'Auger': {'xcode_build': '27A266a'}}),
                   'spm_cache_profile_requested': 'shared_qualified'}
-        profiles = (('shared_qualified', 'shared-qualified-v1', 'SiloMac', QUALIFIED_SPM_PROJECT,
+        profiles = (('shared_qualified', 'shared-qualified-v1', 'Auger', QUALIFIED_SPM_PROJECT,
                      QUALIFIED_SPM_TOOLCHAIN),
-                    ('scheme', 'Silo', 'Silo', '0' * 64, QUALIFIED_SPM_TOOLCHAIN),
-                    ('scheme', 'Silo', 'Silo', QUALIFIED_SPM_PROJECT, '0' * 24))
+                    ('scheme', 'Auger', 'Auger', '0' * 64, QUALIFIED_SPM_TOOLCHAIN),
+                    ('scheme', 'Auger', 'Auger', QUALIFIED_SPM_PROJECT, '0' * 24))
         for effective, scope, owner, project, toolchain in profiles:
             fields = {'spm_cache_profile_effective': effective, 'spm_cache_scope': scope,
                       'spm_cache_save_owner': owner}
@@ -715,11 +694,10 @@ class MetadataTests(unittest.TestCase):
                     self.assertEqual(marker[key], value)
                 self.assertTrue(marker['timing_eligible'])
 
-
     def compilation_env(self):
         return {'GITHUB_EVENT_NAME': 'workflow_dispatch', 'SILO_BENCH_VARIANT': 'optimized',
                 'SILO_CACHE_MODE': 'derived_data', 'SILO_COMPILATION_CACHE_ENABLED': 'true',
-                'SILO_BENCHMARK_PLATFORM': 'ios', 'PLATFORM': 'iOS'}
+                'SILO_BENCHMARK_PLATFORM': 'tvos', 'PLATFORM': 'tvOS'}
 
     def test_compilation_cache_requires_manual_optimized_derived_data(self):
         env = self.compilation_env()
@@ -747,7 +725,7 @@ class MetadataTests(unittest.TestCase):
     def test_compilation_profile_reports_dirty_source_and_excludes_timing(self):
         result = {'source_sha': 'a' * 40, 'cache_namespace': 'v1', 'source_dirty': 'true',
                   'lock_sha256': 'b' * 64, 'build_config_sha256': 'c' * 64,
-                  'toolchain_json': json.dumps({'Silo': {'xcode_build': '27A266a'}})}
+                  'toolchain_json': json.dumps({'Auger': {'xcode_build': '27A266a'}})}
         env = {**self.compilation_env(), 'SILO_DERIVED_CACHE_RESTORED': 'true'}
         marker = metadata.benchmark(result, env)
         self.assertTrue(marker['compilation_cache_enabled'])
@@ -759,7 +737,7 @@ class MetadataTests(unittest.TestCase):
         clean = metadata.benchmark({**result, 'source_dirty': 'false'},
                                    env)
         self.assertTrue(clean['timing_eligible'])
-        normal = metadata.benchmark({**result, 'source_dirty': 'false'}, {'PLATFORM': 'iOS'})
+        normal = metadata.benchmark({**result, 'source_dirty': 'false'}, {'PLATFORM': 'tvOS'})
         self.assertFalse(normal['compilation_cache_enabled'])
         self.assertEqual(normal['compilation_cache_profile'], 'standard')
 

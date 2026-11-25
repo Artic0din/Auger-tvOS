@@ -1,10 +1,10 @@
 name: TestFlight Release
 
-# Makes a TestFlight build: tags the commit vX.Y.Z-beta.B, publishes a GitHub
-# prerelease with notes on what changed since the last build, and uploads tvOS
-# build B of marketing version X.Y.Z to TestFlight. X.Y.Z stays the same until
-# promote.yml drafts its App Store release, so later builds skip Beta App
-# Review. tvOS only: this fork keeps only the Apple TV app.
+# Makes a tvOS TestFlight build: tags the commit vX.Y.Z-beta.B, publishes a
+# GitHub prerelease with notes on what changed since the last build, and
+# uploads tvOS build B of marketing version X.Y.Z to TestFlight. X.Y.Z stays
+# the same until promote.yml drafts its App Store release, so later builds skip
+# Beta App Review.
 # See docs/release/ci-release.md.
 
 on:
@@ -24,15 +24,10 @@ on:
         required: false
         type: string
 
-# Serialize releases: each run takes the next build number, so overlapping
-# runs would collide. Let an in-flight release finish.
 concurrency:
   group: testflight-release
   cancel-in-progress: false
 
-# Apple build jobs only read the repository. The release and source jobs get
-# contents: write to publish the prerelease and its rebuild sources before
-# binary distribution.
 permissions:
   contents: read
 
@@ -42,11 +37,10 @@ env:
   SILO_CACHE_NAMESPACE: production
 
 jobs:
-  # Choose the version, build number and tag once so every job agrees on them.
   prepare:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # list draft releases, which read-only tokens can't see
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
@@ -60,7 +54,7 @@ jobs:
           exit 1
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # all tags
+          fetch-depth: 0
           persist-credentials: false
       - uses: ruby/setup-ruby@v1
         with:
@@ -71,8 +65,6 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
         run: BUILD_NUMBERS_FILE="$RUNNER_TEMP/testflight.env" bundle exec fastlane ios next_build_number
-      # A promoted version waiting for App Review (a draft vX.Y.Z release)
-      # counts as released.
       - name: Choose version and build
         id: version
         env:
@@ -86,7 +78,6 @@ jobs:
             echo "::error::Could not read the latest TestFlight build number."
             exit 1
           fi
-          # Read every page: a draft can be older than the newest 100 releases.
           draft_tags="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
             --jq '.[] | select(.draft) | .tag_name')"
           drafts=()
@@ -95,9 +86,6 @@ jobs:
           done
           python3 scripts/ci/release-version.py next --bump "$BUMP" --version "$VERSION" \
             --min-build "$min_build" "${drafts[@]}" | tee -a "$GITHUB_OUTPUT"
-      # A prerelease without the distribution note comes from a run that failed
-      # before testers got the build. Starting this build's notes there would
-      # leave out changes no tester got.
       - name: Require the previous build to have reached testers
         env:
           GH_TOKEN: ${{ github.token }}
@@ -110,14 +98,12 @@ jobs:
             exit 1
           fi
 
-  # Publish the prerelease before any binary:
-  # the app links its source archive, which must be public first.
   release:
     needs: prepare
     if: ${{ !cancelled() && needs.prepare.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write # create the release (and generate its notes)
+      contents: write
     outputs:
       changelog: ${{ steps.changelog.outputs.value }}
     env:
@@ -135,11 +121,6 @@ jobs:
           gh api "repos/$GH_REPO/releases/generate-notes" \
             -f tag_name="$TAG" -f target_commitish="$GITHUB_SHA" \
             ${PREVIOUS_TAG:+-f previous_tag_name="$PREVIOUS_TAG"} --jq .body > "$RUNNER_TEMP/notes.md"
-      # TestFlight's "What to Test", leaving room for the source line the
-      # Fastfile appends (4,000 max): Claude's summary of the pull request
-      # titles, or the plain list of Features and Fixes when that fails or
-      # ANTHROPIC_API_KEY isn't set. The key exists only in this step, on a
-      # GitHub-hosted runner, and the workflow only runs by manual dispatch.
       - name: Write What to Test
         id: changelog
         env:
@@ -159,10 +140,9 @@ jobs:
             echo
             echo "From $source:"
             echo
-            # Indented, so the text shows as a code block whatever it contains.
             sed 's/^/    /' "$what_to_test"
           } >> "$GITHUB_STEP_SUMMARY"
-          delimiter="silo_changelog_$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
+          delimiter="auger_changelog_$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
           {
             echo "value<<$delimiter"
             cat "$what_to_test"
@@ -174,8 +154,6 @@ jobs:
           BUILD: ${{ needs.prepare.outputs.build }}
         run: |
           set -euo pipefail
-          # A re-run of this run's failed jobs finds its own release. Anything
-          # else holding the tag is a different build.
           if gh release view "$TAG" >/dev/null 2>&1; then
             if [ "$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)" != "$GITHUB_SHA" ]; then
               echo "::error::$TAG already belongs to another commit. Run Release again for a new build number."
@@ -189,11 +167,10 @@ jobs:
             echo
             cat "$RUNNER_TEMP/notes.md"
             echo
-            echo "Source and rebuild instructions are in the Silo-source archive."
+            echo "Source and rebuild instructions are in the Auger-source archive."
           } > notes.md
-          # A prerelease never becomes Latest; that stays the App Store release.
           gh release create "$TAG" --target "$GITHUB_SHA" --prerelease \
-            --title "Silo $VERSION ($BUILD)" --notes-file notes.md
+            --title "Auger $VERSION ($BUILD)" --notes-file notes.md
 
   source:
     needs: [prepare, release]
@@ -207,8 +184,7 @@ jobs:
 
   tvos:
     needs: [prepare, release, source]
-    if: >-
-      !cancelled() && needs.prepare.result == 'success' && needs.source.result == 'success'
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.source.result == 'success' }}
     runs-on: xcode-27
     env:
       SILO_SOURCE_PACKAGES_PATH: ${{ github.workspace }}/.ci-cache/packages
@@ -223,7 +199,7 @@ jobs:
 
       - name: Record archive cache inputs
         id: metadata
-        run: python3 scripts/ci/apple-build-metadata.py --root . --device-scheme SiloTV-device --outputs
+        run: python3 scripts/ci/apple-build-metadata.py --root . --device-scheme Auger-device --outputs
 
       - name: Install XcodeGen (pinned, checksum-verified)
         uses: ./.github/actions/install-xcodegen
@@ -245,7 +221,7 @@ jobs:
           lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
           project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
           source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: SiloTV-device
+          scheme: Auger-device
 
       - name: Build and upload tvOS to TestFlight
         run: bundle exec fastlane ios beta_tvos
@@ -286,7 +262,7 @@ jobs:
           lock-key: ${{ steps.metadata.outputs.lock_sha256 }}
           project-key: ${{ steps.metadata.outputs.build_config_sha256 }}-xcodegen2.43.0
           source-sha: ${{ steps.metadata.outputs.source_sha }}
-          scheme: SiloTV-device
+          scheme: Auger-device
           save-cache: 'true'
           save-dependencies: 'true'
           spm-cache-hit: ${{ steps.cache.outputs.spm-cache-hit }}

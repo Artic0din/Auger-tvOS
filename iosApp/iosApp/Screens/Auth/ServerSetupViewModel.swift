@@ -63,7 +63,7 @@ class ServerSetupViewModel {
     /// a saved server is picked from Recent.
     private let hasSession: @Sendable () -> Bool
     private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "org.siloserver.silo",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.artic0din.auger",
         category: "ServerSetup"
     )
 

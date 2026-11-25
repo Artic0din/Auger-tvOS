@@ -8,7 +8,7 @@ Every Release run makes a TestFlight build tagged vX.Y.Z-beta.B:
   vX.Y.Z, so later builds skip Beta App Review. The draft counts as released,
   and the next run starts a new version with bump=minor/patch. (App Store
   Connect itself refuses more X.Y.Z builds only once it approves X.Y.Z.)
-- B is the build number (CFBundleVersion), shared by iOS and tvOS: the next
+- B is the build number (CFBundleVersion) for tvOS: the next
   TestFlight build number (--min-build), or one more than every build already
   in a tag if that is higher.
 

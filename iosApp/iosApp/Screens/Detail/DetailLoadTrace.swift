@@ -65,7 +65,7 @@ enum DetailLoadTrace {
     /// Opens pages without the card's data, as they opened before seeding,
     /// so one build can measure the old first paint with the newer markers.
     static let seedDisabled = CommandLine.arguments.contains("-detailSeedOff")
-    private static let logger = Logger(subsystem: "org.siloserver.silo", category: "perf.detail")
+    private static let logger = Logger(subsystem: "com.artic0din.auger", category: "perf.detail")
 
     private static var contentId: String?
     private static var start: ContinuousClock.Instant?
@@ -264,7 +264,7 @@ enum DetailLoadTrace {
 
     /// Lines go to the file on a background queue: opening and writing it
     /// on the main thread took a few milliseconds of the frames being timed.
-    private static let fileQueue = DispatchQueue(label: "org.siloserver.silo.detail-load-trace")
+    private static let fileQueue = DispatchQueue(label: "com.artic0din.auger.detail-load-trace")
 
     private static func writeLine(_ line: String) {
         logger.notice("\(line, privacy: .public)")

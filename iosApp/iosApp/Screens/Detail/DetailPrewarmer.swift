@@ -127,7 +127,7 @@ final class DetailPrewarmPathMonitor: @unchecked Sendable {
             guard let self else { return }
             self.lock.withLock { self.metered = path.isExpensive || path.isConstrained }
         }
-        monitor.start(queue: DispatchQueue(label: "org.siloserver.silo.detail-prewarm-path"))
+        monitor.start(queue: DispatchQueue(label: "com.artic0din.auger.detail-prewarm-path"))
     }
 
     var isMetered: Bool { lock.withLock { metered } }

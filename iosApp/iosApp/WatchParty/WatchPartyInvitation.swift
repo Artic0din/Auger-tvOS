@@ -5,14 +5,14 @@ import Foundation
 ///
 /// Two shapes name the same invitation:
 /// - `https://<server>/rooms/join?token=…`, the shareable web link.
-/// - `silo://watch-party?server=<server>&token=…`, the app link the server's
-///   join page offers, since a self-hosted domain can't be a universal link.
+/// - `auger://watch-party?server=<server>&token=…` or `silo://watch-party?server=<server>&token=…`,
+///   the app link offered by Auger or the server's join page, since a self-hosted domain can't be a universal link.
 struct WatchPartyInvitation: Equatable, Sendable {
     let serverURL: String
     let joinToken: String
 
     init?(url: URL) {
-        if url.scheme?.lowercased() == SiloURLScheme.current {
+        if SiloURLScheme.isAppURL(url) {
             self.init(appURL: url)
         } else {
             self.init(webURL: url)

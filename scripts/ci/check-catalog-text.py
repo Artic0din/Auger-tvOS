@@ -12,7 +12,7 @@ the guard flags:
   a catalog key, so it shows English in every language.
 - Prose passed to a labelled text argument of any call, such as
   EmptyStateView(title: "No favorites") or Overlay(message: isOn ? "On" : "Off").
-  Identifiers ("chevron.left", "org.siloserver.silo") and logging calls pass.
+  Identifiers ("chevron.left", "com.artic0din.auger") and logging calls pass.
 - In a path listed with the `mappings` flag, a sentence mapped to shown text
   outside a call: `return "…"`, `case .x: "…"`, `default: "…"`, a ternary branch, a `??`
   fallback or `.append("…")`, and the literals its interpolations show.
@@ -69,7 +69,7 @@ TERNARY = re.compile(r"(?<=\s)\?(?=\s)")
 
 LETTER = re.compile(r"[A-Za-z]")
 WORDS = re.compile(r"[A-Za-z]{2,}")
-# "chevron.left", "movie", "video_with_episodes", "org.siloserver.silo",
+# "chevron.left", "movie", "video_with_episodes", "com.artic0din.auger",
 # "shell.searchIntent.term", "librariesTabSelectedLibraryId", "rename:".
 IDENTIFIER = re.compile(r"^[_a-z0-9][\w.:/-]*$")
 
@@ -355,7 +355,7 @@ def main(argv: list[str]) -> int:
     print("\n".join(findings))
     print(
         "\nerror: these lines put English straight into interface text in a path whose\n"
-        "text comes from the string catalog. Add a key to silo-translations and use its\n"
+        "text comes from the string catalog. Add a key to iosApp/iosApp/Localizable.xcstrings and use its\n"
         "symbol (Text(.commonDone)), or use Text(verbatim:) / .verbatim(…) for text that\n"
         "isn't interface text. Mark a literal that must stay as is with a trailing\n"
         "`// i18n-ignore: <reason>`. See docs/i18n.md."

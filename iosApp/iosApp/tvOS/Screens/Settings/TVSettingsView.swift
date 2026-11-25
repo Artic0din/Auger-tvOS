@@ -198,7 +198,7 @@ struct TVSettingsView: View {
 
             signOutRow
 
-            Text(verbatim: "Silo \(Self.versionString)")
+            Text(verbatim: "Auger \(Self.versionString)")
                 .font(.system(size: 18))
                 .foregroundColor(.siloSecondaryText.opacity(0.7))
                 .padding(.leading, 20)

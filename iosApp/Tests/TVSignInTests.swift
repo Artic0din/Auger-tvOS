@@ -314,7 +314,7 @@ final class TVSignInTests: XCTestCase {
         var handoff = lookup("pending")
         handoff.temporary = true
         result = await phase(for: .success(handoff))
-        XCTAssertEqual(result, .failed("This code isn't for signing in a TV."))
+        XCTAssertEqual(result, .failed("This code can't be approved here."))
     }
 
     /// After approving, the card follows the request: a TV that withdraws

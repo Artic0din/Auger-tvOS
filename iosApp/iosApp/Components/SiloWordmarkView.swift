@@ -6,11 +6,11 @@ struct SiloWordmarkView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Image("SiloWordmark")
+            Image("AugerWordmark")
                 .resizable()
                 .scaledToFit()
                 .frame(width: width)
-                .accessibilityLabel("Silo") // i18n-ignore: brand name
+                .accessibilityLabel("Auger") // i18n-ignore: brand name
 
             if let subtitle {
                 Text(subtitle)

@@ -4,7 +4,7 @@ import Network
 /// The pairing channel is the shared framed-JSON LAN transport specialized to
 /// `PairingMessage`. TLS provides opportunistic confidentiality only (the PSK
 /// is compiled into the app; see §6 of
-/// docs/superpowers/specs/2026-06-14-companion-pairing-design.md); integrity
+/// Wire format for companion pairing over LAN TLS; integrity
 /// rests on the server-issued match code.
 typealias PairingSession = FramedJSONSession<PairingMessage>
 

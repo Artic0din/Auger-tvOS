@@ -372,7 +372,7 @@ struct MarqueeServerMark: View {
     private var fallback: some View {
         if fallsBackToProjectIcon {
             // The icon brings its own field; the rounder clip trims its corners.
-            Image("SiloProjectIcon")
+            Image("AugerProjectIcon")
                 .resizable()
                 .scaledToFill()
         } else if let initial = name?.trimmingCharacters(in: .whitespaces).first {

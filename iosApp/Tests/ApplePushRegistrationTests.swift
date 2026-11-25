@@ -10,9 +10,9 @@ final class ApplePushRegistrationTests: XCTestCase {
         XCTAssertEqual(ApplePushRegistrationWire.tokenHex(from: data), "00010f10abff")
     }
 
-    func testEmptyBundleIdentifiersFallBackToSiloTopic() {
-        XCTAssertEqual(ApplePushRegistrationWire.topic(bundleIdentifier: nil), "org.siloserver.silo")
-        XCTAssertEqual(ApplePushRegistrationWire.topic(bundleIdentifier: "   "), "org.siloserver.silo")
+    func testEmptyBundleIdentifiersFallBackToAugerTopic() {
+        XCTAssertEqual(ApplePushRegistrationWire.topic(bundleIdentifier: nil), "com.artic0din.auger")
+        XCTAssertEqual(ApplePushRegistrationWire.topic(bundleIdentifier: "   "), "com.artic0din.auger")
         XCTAssertEqual(ApplePushRegistrationWire.topic(bundleIdentifier: "org.example.app"), "org.example.app")
     }
 

@@ -1906,7 +1906,7 @@ actor DiagnosticsCoordinator {
         let occurredAt = lastKnownAliveAt.map(DiagnosticsTimestamp.string(from:))
             ?? DiagnosticsTimestamp.string(from: capturedAt)
         let crash = DiagnosticsCrashInfo(
-            summary: "Silo did not shut down cleanly last time",
+            summary: "Auger did not shut down cleanly last time",
             stackExcerpt: nil,
             thread: nil,
             foreground: true,

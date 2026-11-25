@@ -6,7 +6,6 @@ struct TVDiagnosticsSettingsPane: View {
     let detailFocus: FocusState<TVSettingsDetailFocus?>.Binding
 
     @State private var showConsentPicker = false
-    @State private var showDestinationPicker = false
     @State private var selectedReport: PendingReport?
     @Environment(\.locale) private var locale
 
@@ -17,19 +16,13 @@ struct TVDiagnosticsSettingsPane: View {
             TVSettingsInfoRow(title: .diagnosticsRowDestination, value: model.destinationServerName)
 
             TVSettingsSectionHeader(.diagnosticsSectionCaptureTv)
-            TVSettingsPickerRow(
-                title: .diagnosticsRowSendReportsTo,
-                value: model.selectedDestination.title,
-                action: { showDestinationPicker = true }
-            )
-            .focused(detailFocus, equals: .top)
-
             TVSettingsToggleRow(
                 title: .diagnosticsRowDebugLogging,
                 isOn: model.debugLoggingEnabled
             ) {
                 model.debugLoggingEnabled.toggle()
             }
+            .focused(detailFocus, equals: .top)
 
             TVSettingsPickerRow(
                 title: .diagnosticsRowCrashReports,
@@ -38,11 +31,7 @@ struct TVDiagnosticsSettingsPane: View {
             )
             .disabled(!model.canChangeConsent)
 
-            if model.selectedDestination == .hosted {
-                TVSettingsFooter(model.hostedPrivacyDisclosure)
-            } else {
-                TVSettingsFooter(.diagnosticsCaptureSelfHostedFooterAppleTv)
-            }
+            TVSettingsFooter(.diagnosticsCaptureSelfHostedFooterAppleTv)
 
             TVSettingsSectionHeader(.diagnosticsSectionPendingTv(model.pendingReports.count))
             if model.pendingReports.isEmpty {
@@ -108,9 +97,6 @@ struct TVDiagnosticsSettingsPane: View {
         }
         .fullScreenCover(isPresented: $showConsentPicker) {
             TVDiagnosticsConsentScreen(model: model)
-        }
-        .fullScreenCover(isPresented: $showDestinationPicker) {
-            TVDiagnosticsDestinationScreen(model: model)
         }
         .fullScreenCover(item: $selectedReport) { report in
             TVDiagnosticsPendingReportScreen(report: report, model: model)

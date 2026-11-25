@@ -1,7 +1,7 @@
-Silo Open-Source Acknowledgements
-================================
+Auger Open-Source Acknowledgements
+==================================
 
-This Silo build includes the components listed below. Their complete license
+This Auger build includes the components listed below. Their complete license
 texts are bundled beside this file and are available from Settings > About >
 Acknowledgements.
 
@@ -75,11 +75,11 @@ ThumbHash decoder
   Revision: a652ce6ed691242f459f468f0a8756cda3b90a82
   License: MIT
   Source: https://github.com/evanw/thumbhash/tree/a652ce6ed691242f459f468f0a8756cda3b90a82
-  Silo includes an adapted copy of the reference Swift decode path with input
-  validation, cross-platform image creation, and a bounded asynchronous cache.
+  Auger includes an adapted copy of the reference Swift decode path with input
+  validation, image creation, and a bounded asynchronous cache.
 
 SMBClient 0.3.1 is present in SwiftPM's resolution graph only because
-AetherEngine publishes a separate optional AetherEngineSMB product. Silo links
+AetherEngine publishes a separate optional AetherEngineSMB product. Auger links
 the AetherEngine product, not AetherEngineSMB, so SMBClient is not included in
 these shipped-component notices.
 
@@ -115,14 +115,9 @@ SwiftAssRenderer, SwiftLibass, and local ASS rendering
 
   FriBidi is statically linked. App and library source, a revision
   manifest, and instructions for rebuilding with a modified library are
-  published as Silo-source-<app-commit>.tar.gz at:
-  https://github.com/Silo-Server/silo-apple/releases
-  Each TestFlight build places the archive on its vX.Y.Z-beta.<build>
-  release (earlier builds used a source-<app-commit> release), and each
-  sideload build on its own release. The TestFlight build's
-  What to Test notes include the exact archive URL. Builds from the release
-  and sideload workflows also show it at the top of these acknowledgements
-  and behind Settings > About > Source Code on iPhone and iPad; other builds
-  link the repository. No original release signing keys are needed to
-  rebuild for a simulator; physical-device builds use the recipient's
-  signing identity.
+  published as Auger-source-<app-commit>.tar.gz at:
+  https://github.com/Artic0din/Auger-tvOS/releases
+  Builds from the release and sideload workflows link the archive at the top
+  of these acknowledgements; local builds link the repository. No original
+  release signing keys are needed to rebuild for a simulator; physical-device
+  builds use the recipient's signing identity.

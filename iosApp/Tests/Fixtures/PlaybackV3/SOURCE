@@ -19,7 +19,7 @@ document. The v2 capability fixtures live in Tests/Fixtures/APIv2.
 error_response.json is not vendored: it is the retired v1 426
 client_upgrade_required envelope. v2 errors are problem documents.
 
-Refresh these files together from the server, then regenerate Silo.xcodeproj with cd iosApp && xcodegen generate.
+Refresh these files together from the server, then regenerate Auger.xcodeproj with cd iosApp && xcodegen generate.
 
 Buffering quality
 Source: silo-server docs/design/schemas/playback-v3/v3/fixtures

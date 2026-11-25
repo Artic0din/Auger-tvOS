@@ -7,10 +7,7 @@ final class HostedDiagnosticsAPITests: XCTestCase {
     private let selfHostedStub = SelfHostedDiagnosticsStub()
 
     func testDefaultCollectorSessionHasNoSharedCookiesOrCredentials() throws {
-        XCTAssertEqual(
-            HostedDiagnosticsAPI.defaultBaseURL,
-            try XCTUnwrap(URL(string: "https://diagnostics.siloserver.org"))
-        )
+        XCTAssertNil(HostedDiagnosticsAPI.defaultBaseURL)
 
         let session = HostedDiagnosticsAPI.makeIsolatedSession()
         defer { session.invalidateAndCancel() }
@@ -21,6 +18,23 @@ final class HostedDiagnosticsAPITests: XCTestCase {
         XCTAssertNil(configuration.httpCookieStorage)
         XCTAssertNil(configuration.urlCredentialStorage)
         XCTAssertEqual(configuration.requestCachePolicy, .reloadIgnoringLocalCacheData)
+    }
+
+    func testDefaultCollectorCapabilitiesFailsClosedWithoutSendingARequest() async throws {
+        let api = HostedDiagnosticsAPI(
+            baseURL: HostedDiagnosticsAPI.defaultBaseURL,
+            session: makeSession(),
+            credentialStore: HostedTestCredentialStore(credential: nil)
+        )
+
+        do {
+            _ = try await api.capabilities()
+            XCTFail("Expected invalidBaseURL when hosted collector is disabled")
+        } catch let error as HostedDiagnosticsAPIError {
+            XCTAssertEqual(error, .invalidBaseURL)
+        }
+
+        XCTAssertTrue(hostedStub.requests().isEmpty)
     }
 
     func testCollectorBaseURLMustBeHTTPSOriginWithoutPathOrIdentity() async throws {

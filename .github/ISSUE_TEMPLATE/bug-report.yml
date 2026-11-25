@@ -6,16 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Report behavior you reproduced yourself. Keep what you observed separate from any theory about the cause. Redact credentials, tokens, personal data, server addresses, and private media details, and mark each redaction.
+        Report behavior you reproduced yourself on Apple TV. Keep what you observed separate from any theory about the cause. Redact credentials, tokens, personal data, server addresses, and private media details, and mark each redaction.
 
-        This fork focuses on Apple TV (tvOS). Problems that also happen in the web app usually come from the server and belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose).
-
-        Read [CONTRIBUTING.md](https://github.com/Artic0din/Auger-tvOS/blob/main/CONTRIBUTING.md) first.
+        Problems that also happen in the Silo web app usually come from the server and belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose). Read [CONTRIBUTING.md](https://github.com/Artic0din/Auger-tvOS/blob/main/CONTRIBUTING.md) first.
   - type: textarea
     id: what-happened
     attributes:
       label: What happened
-      description: What did you actually observe? Include how often it happens (for example "3 of 3 attempts") and what still works, such as the same item in the web app.
+      description: What did you actually observe? Include how often it happens (for example "3 of 3 attempts") and whether the same item works in the Silo web app.
     validations:
       required: true
   - type: textarea
@@ -43,8 +41,8 @@ body:
     id: app-version
     attributes:
       label: App version and build
-      description: "**Settings > Server > About > App Version** on Apple TV."
-      placeholder: "1.0.0 (42)"
+      description: "**Settings > Server > About > App Version** in Auger on Apple TV."
+      placeholder: "1.0.0 (1)"
     validations:
       required: true
   - type: dropdown
@@ -52,8 +50,9 @@ body:
     attributes:
       label: Installed from
       options:
-        - "Sideloaded IPA"
         - "Built from source"
+        - "Sideloaded IPA from GitHub Releases"
+        - "TestFlight"
         - "Other"
     validations:
       required: true
@@ -61,14 +60,14 @@ body:
     id: server-version
     attributes:
       label: Silo server version
-      description: The **Build** value at the bottom of the server's admin sidebar, for example `412 · 1a2b3c4d`. Ask your server admin if that is not you.
+      description: The **Build** value at the bottom of your Silo server's admin sidebar, for example `412 · 1a2b3c4d`.
     validations:
       required: true
   - type: textarea
     id: playback-details
     attributes:
       label: Playback details
-      description: "For playback problems: on Apple TV open **Info and options** > **Stats**. Include the delivery or route, container, video, audio, and dynamic range, plus the subtitle format and your audio setup (TV speakers, soundbar, receiver)."
+      description: "For playback problems. Open **Info and options > Stats** in the player and include the delivery or route, container, video, audio, and dynamic range, plus the subtitle format and your audio setup (TV speakers, soundbar, receiver)."
   - type: textarea
     id: screenshots
     attributes:
@@ -78,7 +77,7 @@ body:
     id: relevant-logs
     attributes:
       label: Relevant server logs
-      description: Optional. Raw lines from the server's **Admin > Logs**, filtered by playback session when you can.
+      description: Optional. Raw lines from your Silo server's **Admin > Logs**, filtered by playback session when you can.
       render: shell
   - type: textarea
     id: technical-notes

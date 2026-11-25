@@ -122,7 +122,7 @@ struct MediaRow: View {
     /// False while a pushed page covers the row (or it is scrolled away).
     @State private var isOnScreen = false
     private static let focusLogger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "org.siloserver.silo",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.artic0din.auger",
         category: "TVFocus"
     )
     #endif

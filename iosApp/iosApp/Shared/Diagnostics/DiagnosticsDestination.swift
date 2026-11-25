@@ -21,30 +21,37 @@ final class DiagnosticsDestinationStore: Sendable {
 
     private static let selectedDestinationKey = "diagnostics.destination.v1"
     private let defaults: SharedDefaults
+    private let allowsHostedDestination: Bool
     /// In-memory copy of the choice, because the log gate reads it on every
     /// line. Loaded on first read and written through by `select`; no other
     /// process writes the key.
     private let selection = Mutex<DiagnosticsDestinationChoice?>(nil)
 
-    init(defaults: SharedDefaults = .shared) {
+    init(
+        defaults: SharedDefaults = .shared,
+        allowsHostedDestination: Bool = false
+    ) {
         self.defaults = defaults
+        self.allowsHostedDestination = allowsHostedDestination
     }
 
     var selectedDestination: DiagnosticsDestinationChoice {
-        selection.withLock { selection in
+        guard allowsHostedDestination else { return .selfHosted }
+        return selection.withLock { selection in
             if let selection { return selection }
             let stored = defaults.string(forKey: Self.selectedDestinationKey)
-                .flatMap(DiagnosticsDestinationChoice.init(rawValue:)) ?? .hosted
+                .flatMap(DiagnosticsDestinationChoice.init(rawValue:)) ?? .selfHosted
             selection = stored
             return stored
         }
     }
 
     func select(_ destination: DiagnosticsDestinationChoice) {
+        let effective: DiagnosticsDestinationChoice = allowsHostedDestination ? destination : .selfHosted
         // Outside the lock: a defaults write posts its change notification
         // synchronously, and an observer that logs would re-enter the getter.
-        defaults.set(destination.rawValue, forKey: Self.selectedDestinationKey)
-        selection.withLock { $0 = destination }
+        defaults.set(effective.rawValue, forKey: Self.selectedDestinationKey)
+        selection.withLock { $0 = effective }
     }
 }
 

@@ -15,24 +15,20 @@ concurrency:
 
 jobs:
   test:
-    # Same hosted image as the sideload and release builds. tvOS only: this
-    # fork keeps only the Apple TV app.
+    # Same hosted image as the sideload and release builds.
     runs-on: xcode-27
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        scheme: [SiloTV]
+        scheme: [Auger]
     env:
-      # Known failures on main, each tracked by an issue; remove an entry when
-      # its issue is fixed.
+      # Known failures tracked by issues; remove an entry when its issue is fixed.
       #   #57 ImageSizeCapabilityTests, ArtworkURLTests
-      #   #58 TVSignInTests
       #   #64 MediaAuthorizationPlaybackTests
       SILO_SKIP_TESTS: >-
         ImageSizeCapabilityTests/testResetClearsCapability
         ArtworkURLTests/testDeliveryCapabilityOnIOSUsesV2RouteAndResets
-        TVSignInTests/testApprovalCardExplainsEveryWayALookupEnds
         MediaAuthorizationPlaybackTests/testBearerRotationContinuesOnTheSamePlayerAndItem
       # Hosted runners are about 3x slower than a local Mac; media tests need room.
       SILO_TEST_TIMEOUT: 180

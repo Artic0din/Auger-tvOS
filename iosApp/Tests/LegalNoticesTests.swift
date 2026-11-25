@@ -5,10 +5,9 @@ import XCTest
 /// license texts behind Open Source Licenses.
 final class LegalNoticesTests: XCTestCase {
     func testStampedReleaseArchiveIsTheSourceLink() {
-        // Single-platform tags such as v1.4.0+ios arrive percent-encoded.
-        for tag in ["v1.0.0", "v1.4.0%2Bios"] {
-            let archive = "https://github.com/Silo-Server/silo-apple/releases/download/\(tag)/"
-                + "Silo-source-\(String(repeating: "a", count: 40)).tar.gz"
+        for tag in ["v1.0.0", "v1.4.0%2Btvos"] {
+            let archive = "https://github.com/Artic0din/Auger-tvOS/releases/download/\(tag)/"
+                + "Auger-source-\(String(repeating: "a", count: 40)).tar.gz"
 
             XCTAssertEqual(SiloLegalLinks.sourceURL(stamped: archive).absoluteString, archive)
         }
@@ -19,10 +18,10 @@ final class LegalNoticesTests: XCTestCase {
             nil,
             "",
             "$(SILO_SOURCE_URL)",
-            "http://github.com/Silo-Server/silo-apple/releases/download/v1/a.tar.gz",
-            "https://example.com/Silo-Server/silo-apple/releases/download/v1/a.tar.gz",
+            "http://github.com/Artic0din/Auger-tvOS/releases/download/v1/a.tar.gz",
+            "https://example.com/Artic0din/Auger-tvOS/releases/download/v1/a.tar.gz",
             "https://github.com/someone/silo-apple/releases/download/v1/a.tar.gz",
-            "https://github.com/Silo-Server/silo-apple-fork/releases/download/v1/a.tar.gz",
+            "https://github.com/Artic0din/Auger-tvOS-fork/releases/download/v1/a.tar.gz",
         ]
 
         for stamp in stamps {

@@ -212,12 +212,13 @@ final class DiagnosticsViewModel {
     }
 
     func setDestination(_ destination: DiagnosticsDestinationChoice) async {
-        guard destination != selectedDestination else { return }
+        destinationStore.select(destination)
+        let effectiveDestination = destinationStore.selectedDestination
+        guard effectiveDestination != selectedDestination else { return }
         generation &+= 1
         let refreshGeneration = generation
-        destinationStore.select(destination)
         DiagnosticsCoordinator.diagnosticsDestinationWillChange()
-        selectedDestination = destination
+        selectedDestination = effectiveDestination
         statusSnapshot = nil
         featureState = .loading
         consentMode = .ask
@@ -227,7 +228,7 @@ final class DiagnosticsViewModel {
         notice = nil
         isWorking = false
         await refreshStatusAndLocalState(
-            destination: destination,
+            destination: effectiveDestination,
             expectedGeneration: refreshGeneration
         )
     }

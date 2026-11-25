@@ -102,11 +102,11 @@ struct MarqueeTVSetupSteps: View {
     }
 }
 
-/// The Silo app icon: the mark on the deep blue field.
+/// The Auger app icon: the mark on the deep blue field.
 private struct SetupAppIcon: View {
     var body: some View {
         // The icon draws the mark at 84% of its height.
-        Image("SiloMark")
+        Image("AugerMark")
             .resizable()
             .scaledToFit()
             .frame(height: 77)

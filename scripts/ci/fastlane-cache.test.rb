@@ -33,7 +33,7 @@ class FastlaneCacheTest < Minitest::Test
   def test_package_download_path_is_shared_by_resolve_and_archive
     path = File.expand_path("work/SPM cache's (test)")
     ENV["SILO_SOURCE_PACKAGES_PATH"] = path
-    @lane.run_lane(:beta_ios)
+    @lane.run_lane(:beta_tvos)
     resolves = @lane.actions.select { |action, args| action == :sh && args.first == "xcodebuild" }
     assert_equal 1, resolves.length
     args = resolves.first.last
@@ -51,7 +51,7 @@ class FastlaneCacheTest < Minitest::Test
   end
 
   def test_package_path_is_optional_for_local_lanes
-    @lane.run_lane(:beta_ios)
+    @lane.run_lane(:beta_tvos)
     assert_nil action_options(:build_app)[:cloned_source_packages_path]
     resolve = @lane.actions.find { |action, args| action == :sh && args.first == "xcodebuild" }.last
     refute_includes resolve, "-clonedSourcePackagesDirPath"
@@ -59,7 +59,7 @@ class FastlaneCacheTest < Minitest::Test
 
   def test_unsigned_archive_uses_the_same_locked_package_path_and_timing
     ENV["SILO_SOURCE_PACKAGES_PATH"] = File.expand_path("work/sideload packages")
-    { ipa_ios_unsigned: "Silo", ipa_tvos_unsigned: "SiloTV" }.each do |lane, scheme|
+    { ipa_tvos_unsigned: "Auger" }.each do |lane, scheme|
       @lane = FastfileHarness.new
       @lane.define_singleton_method(:package_unsigned_ipa) { |**_options| }
       @lane.run_lane(lane)

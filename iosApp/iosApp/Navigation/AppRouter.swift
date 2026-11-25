@@ -1485,7 +1485,7 @@ final class AppRouter {
     }
 
     /// Serial, so these breadcrumbs keep their order.
-    private static let breadcrumbQueue = DispatchQueue(label: "org.siloserver.silo.navigation-breadcrumbs", qos: .utility)
+    private static let breadcrumbQueue = DispatchQueue(label: "com.artic0din.auger.navigation-breadcrumbs", qos: .utility)
     #endif
 
     /// The auth-state timeline (essential tier): the new state and the router

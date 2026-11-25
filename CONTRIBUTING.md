@@ -12,9 +12,8 @@ This applies whether or not you used AI.
 
 ## Write a useful issue
 
-Open an [issue](https://github.com/Artic0din/Auger-tvOS/issues) for bugs or feature requests in the Apple TV (tvOS) app.
-This fork focuses on tvOS and drops iOS and macOS work.
-Problems with the server or its API belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose), not here.
+Open an [issue](https://github.com/Artic0din/Auger-tvOS/issues) for bugs or feature requests in Auger (Apple TV / tvOS).
+Problems with the Silo server or its API belong in [silo-server](https://github.com/Silo-Server/silo-server/issues/new/choose), not here.
 Search existing issues first and add new details to an open issue rather than filing a duplicate.
 
 Include the details needed to reproduce or evaluate the request:
@@ -28,8 +27,6 @@ Include the details needed to reproduce or evaluate the request:
 - If you found the cause or have a fix in mind, add it under a `Technical notes` heading separate from what you observed.
   Point to the files involved.
 - Note if you used AI to draft or investigate the issue.
-
-Report security vulnerabilities privately with [Report a vulnerability](https://github.com/Artic0din/Auger-tvOS/security/advisories/new) on this repository's Security tab, not in a public issue.
 
 ## Pull requests
 
@@ -47,26 +44,25 @@ When you open an invited pull request:
 ## Development setup
 
 Read [README.md](README.md) for prerequisites, signing setup, and build commands.
-Regenerate `iosApp/Silo.xcodeproj` from `iosApp/project.yml` with `xcodegen generate` instead of hand-editing the generated project.
+Regenerate `iosApp/Auger.xcodeproj` from `iosApp/project.yml` with `xcodegen generate` instead of hand-editing the generated project.
 
 ## Validate your change
 
-Build and test the tvOS app before opening or updating a pull request.
-The project and schemes still use the upstream `Silo` names until the app rebrand is complete:
+Build and test the tvOS app before opening or updating a pull request:
 
 ```sh
 cd iosApp
 xcodegen generate
 xcodebuild build \
-  -project Silo.xcodeproj \
-  -scheme SiloTV \
+  -project Auger.xcodeproj \
+  -scheme Auger \
   -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' \
   CODE_SIGN_IDENTITY='' CODE_SIGNING_ALLOWED=NO
 xcodebuild test \
-  -project Silo.xcodeproj \
-  -scheme SiloTV \
+  -project Auger.xcodeproj \
+  -scheme Auger \
   -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' \
-  CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+  CODE_SIGN_ALLOWED=YES CODE_SIGN_IDENTITY=-
 ```
 
 Simulator tests use ad-hoc signing so Keychain-dependent tests have an application identity.

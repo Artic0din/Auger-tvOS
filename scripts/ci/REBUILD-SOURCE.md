@@ -1,6 +1,6 @@
-# Rebuild Silo with a modified ASS library
+# Rebuild Auger with a modified ASS library
 
-This archive contains the tracked Silo app at `revisions.json`'s `app_revision`,
+This archive contains the tracked Auger app at `revisions.json`'s `app_revision`,
 its resolved Swift package sources, and the six native library source trees
 listed by SwiftLibass 1.4.0. The manifest records immutable source revisions
 and SHA-256 digests of downloaded archives. The app snapshot excludes untracked
@@ -33,14 +33,12 @@ Swift packages. The subtitle library sources listed below are already included.
 
    ```sh
    xcodegen generate
-   xcodebuild build -project Silo.xcodeproj -scheme Silo \
-     -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
+   xcodebuild build -project Auger.xcodeproj -scheme Auger \
+     -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO
    ```
 
-   Use scheme `SiloTV` and `generic/platform=tvOS Simulator` for tvOS, or
-   scheme `SiloMac` and `platform=macOS` for macOS. For a physical device,
-   configure your own signing using `Signing/Local.xcconfig.sample` and the
-   repository build instructions.
+   For a physical Apple TV, configure your own signing using
+   `Signing/Local.xcconfig.sample` and the repository build instructions.
 
 The result links your modified library into a rebuilt application. Release
 signing keys and App Store profiles are not needed for simulator compilation

@@ -1,77 +1,49 @@
 # CI / TestFlight Release
 
-Releases run from GitHub Actions on `main`. Each run picks its own version and
-build number.
+Releases run from GitHub Actions on `main`.
+Each run picks its own version and build number for the tvOS app (`Auger`, bundle identifier `com.artic0din.auger`).
 
 ## TestFlight build
 
-Actions → **TestFlight Release** → Run workflow, leaving `bump` on `build`.
-The very first run has no earlier tag to continue from: enter `1.0.0` as
-`version`. Releases build only the Apple TV app; this fork dropped iPhone and
-Mac.
+Actions -> **TestFlight Release** -> Run workflow, leaving `bump` on `build`.
+The very first run has no earlier tag to continue from: enter `1.0.0` as `version`.
 
-The run tags the commit `v1.0.0-beta.66`, publishes a GitHub prerelease with the
-pull requests merged since the previous build (grouped by label), and uploads
-tvOS `1.0.0 (66)` to TestFlight's external groups.
+The run tags the commit `v1.0.0-beta.66`, publishes a GitHub prerelease with the pull requests merged since the previous build (grouped by label), and uploads tvOS `1.0.0 (66)` to TestFlight's external groups.
 
-TestFlight's "What to Test" is Claude's short summary of those pull request
-titles: what's new, and where to test. The run sends Claude only the section
-names and titles, never pull request bodies, comments, or code. If the summary
-fails, or `ANTHROPIC_API_KEY` isn't set, the run uses the plain list of
-Features and Fixes instead. Either way the run's summary page shows the text,
-and you can edit it in App Store Connect.
+TestFlight's "What to Test" uses Claude to summarize those pull request titles into what changed and what to test.
+The run sends only section names and titles, never pull request bodies, comments, or code.
+If summarization fails or `ANTHROPIC_API_KEY` is unset, the run falls back to the plain list of Features and Fixes.
 
-CI does not run SiloTests or SiloTVTests, and a release does not wait for them.
-Run the tests locally before you start a release.
+CI does not run `AugerTests`, and a release does not wait for them.
+Run tests locally before starting a release.
 
-The prerelease and its source archive are published before any binary, because
-the app links that archive (see `THIRD_PARTY_NOTICES.md`). Never delete a
-prerelease whose build shipped.
+The prerelease and its `Auger-source-<commit>.tar.gz` archive are published before the binary because the app links that archive (see `THIRD_PARTY_NOTICES.md`).
+Never delete a prerelease whose build shipped.
 
-When distribution succeeds, the run adds a "TestFlight: distributed …" line to
-the prerelease. If a run fails before that, use **Re-run failed jobs**: it keeps
-the same build number. To abandon the build instead, delete its GitHub release
-and tag. The next run refuses to start while the newest prerelease lacks that
-line, so its notes don't skip changes no tester got. Promote only accepts a
-build distributed on tvOS.
+When distribution succeeds, the run adds a `"TestFlight: distributed ..."` line to the prerelease.
+If a run fails before that, use **Re-run failed jobs** to keep the same build number.
+To abandon the build instead, delete its GitHub release and tag.
+The next run refuses to start while the newest prerelease lacks that line.
 
 ## Store release
 
-1. Actions → **Promote to App Store** → enter the TestFlight build to ship, such
-   as `v1.0.0-beta.66`. It drafts the GitHub release `v1.0.0` on that build's
-   commit, with notes since the last App Store release. Nothing is rebuilt.
-2. In App Store Connect, add that build to the tvOS version and submit it for
-   review.
-3. Start the next version right away: run TestFlight Release with `bump: patch`
-   (fixes only) or `bump: minor` (new features). Its first build goes through
-   Beta App Review while App Review checks the submitted version, so external
-   testers wait only for that review. Internal testers get the build as soon as
-   it is processed.
-4. Edit the draft notes on GitHub, and publish them as the latest release once
-   Apple approves the version.
+1. Actions -> **Promote to App Store** -> enter the TestFlight build to ship, such as `v1.0.0-beta.66`.
+   It drafts the GitHub release `v1.0.0` on that build's commit, with notes since the last App Store release.
+   Nothing is rebuilt.
+2. In App Store Connect, add that build to the tvOS version and submit it for review.
+3. Start the next version right away: run TestFlight Release with `bump: patch` (fixes only) or `bump: minor` (new features).
+4. Edit the draft notes on GitHub, and publish them as the latest release once Apple approves the version.
 
-App Store Connect accepts more builds of a submitted version until Apple
-approves it, then closes it to new builds, TestFlight included. Release stops
-earlier, at the draft: while it exists the version counts as released and
-`bump: build` refuses it, so only one version is in testing at a time.
-
-If App Review rejects the build, delete the draft and fix the problem. Then run
-TestFlight Release with `version: 1.0.0`, because once the next version has
-started, `bump: build` continues that one. Promote the new build.
+If App Review rejects the build, delete the draft, fix the problem, and run TestFlight Release with `version: 1.0.0` before promoting the new build.
 
 ## Numbers
 
-- `1.0.0` is the marketing version. It stays the same for every TestFlight build
-  until it is promoted to the App Store. The first build of each version goes
-  through Beta App Review; later builds of the same version usually don't.
-- `66` is the build number: one more than the latest TestFlight build on any
-  platform, including the iOS and macOS builds shipped before this fork (and any
-  build already tagged).
-- Tags: `vX.Y.Z-beta.B` for TestFlight builds (GitHub prereleases) and `vX.Y.Z`
-  for App Store releases. Earlier manual runs published `source-<commit>`
-  releases instead; those stay, because shipped builds link their archives.
+- `1.0.0` is the marketing version. It stays the same for every TestFlight build until promoted to the App Store.
+- `66` is the build number: one more than the latest TestFlight build (and any build already tagged).
+- Tags: `vX.Y.Z-beta.B` for TestFlight builds (GitHub prereleases) and `vX.Y.Z` for App Store releases.
 
 ## Required repository secrets
+
 | Secret | Purpose |
 |---|---|
 | `TEAM_ID` | Apple Developer team ID |
@@ -84,13 +56,13 @@ started, `bump: build` continues that one. Promote the new build.
 | `TESTFLIGHT_EXTERNAL_GROUPS` | comma-separated external TestFlight group name(s) |
 | `ANTHROPIC_API_KEY` | Optional. Claude API key for the What to Test summary; without it the run uses the plain list |
 
-## Renewing signing assets (run LOCALLY, not in CI)
-CI runs `match` read-only and cannot create certs/profiles. When a cert expires,
-a device is added, or entitlements / App IDs change (e.g. the keychain-group or
-bundle-namespace change), regenerate locally and push to the certs repo:
+## Renewing signing assets (run locally, not in CI)
 
-    bundle exec fastlane ios sync_signing
+CI runs `match` read-only and cannot create certs or profiles.
+When a cert expires, a device is added, or entitlements / App IDs change, regenerate locally and push to the certs repo:
 
-That covers iOS, tvOS, and macOS. macOS also needs a Mac Installer Distribution
-certificate to sign the `.pkg` uploaded to TestFlight; `sync_signing` creates it
-alongside the Mac App Store profile. Then re-run the release. If CI fails with a missing-profile error, this is the fix.
+```sh
+bundle exec fastlane ios sync_signing
+```
+
+Then re-run the release workflow.

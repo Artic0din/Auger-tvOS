@@ -1,7 +1,6 @@
 # Apple paths whose interface text all comes from the string catalog. Checked by
 # scripts/ci/check-catalog-text.py. Add a path once all of its text is converted;
 # `mappings` also checks sentences returned or mapped outside a call (docs/i18n.md).
-iosApp/DownloadsActivity
 iosApp/iosApp/Components/AccountRemovalConfirmation.swift
 iosApp/iosApp/Components/BoxSetCardBadges.swift  mappings
 iosApp/iosApp/Components/CardYears.swift  mappings

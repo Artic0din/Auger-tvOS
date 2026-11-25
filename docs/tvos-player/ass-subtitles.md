@@ -1,6 +1,6 @@
 # Local ASS subtitles
 
-The Apple video player renders primary ASS/SSA tracks with libass through
+Auger's video player renders primary ASS/SSA tracks with libass through
 SwiftLibass 1.4.0. Aether retains raw ASS events for the primary channel and exposes
 script headers and embedded fonts. The overlay renders these over the video
 without encoding new video frames. The server receives ASS styling and font

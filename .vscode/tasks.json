@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Silo: Generate Xcode project",
+      "label": "Auger: Generate Xcode project",
       "type": "shell",
       "command": "xcodegen",
       "args": [
@@ -14,45 +14,15 @@
       "problemMatcher": []
     },
     {
-      "label": "Silo: Build iOS",
+      "label": "Auger: Build tvOS",
       "type": "shell",
       "command": "xcodebuild",
       "args": [
         "build",
         "-project",
-        "Silo.xcodeproj",
+        "Auger.xcodeproj",
         "-scheme",
-        "Silo",
-        "-destination",
-        "generic/platform=iOS Simulator",
-        "-derivedDataPath",
-        ".deriveddata",
-        "CODE_SIGN_IDENTITY=",
-        "CODE_SIGNING_ALLOWED=NO"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/iosApp"
-      },
-      "dependsOn": "Silo: Generate Xcode project",
-      "dependsOrder": "sequence",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": [
-        "$swiftc"
-      ]
-    },
-    {
-      "label": "Silo: Build tvOS",
-      "type": "shell",
-      "command": "xcodebuild",
-      "args": [
-        "build",
-        "-project",
-        "Silo.xcodeproj",
-        "-scheme",
-        "SiloTV",
+        "Auger",
         "-destination",
         "generic/platform=tvOS Simulator",
         "-derivedDataPath",
@@ -63,52 +33,28 @@
       "options": {
         "cwd": "${workspaceFolder}/iosApp"
       },
-      "dependsOn": "Silo: Generate Xcode project",
+      "dependsOn": "Auger: Generate Xcode project",
       "dependsOrder": "sequence",
-      "group": "build",
-      "problemMatcher": [
-        "$swiftc"
-      ]
-    },
-    {
-      "label": "Silo: Build macOS",
-      "type": "shell",
-      "command": "xcodebuild",
-      "args": [
-        "build",
-        "-project",
-        "Silo.xcodeproj",
-        "-scheme",
-        "SiloMac",
-        "-destination",
-        "platform=macOS",
-        "-derivedDataPath",
-        ".deriveddata",
-        "CODE_SIGN_IDENTITY=",
-        "CODE_SIGNING_ALLOWED=NO"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/iosApp"
+      "group": {
+        "kind": "build",
+        "isDefault": true
       },
-      "dependsOn": "Silo: Generate Xcode project",
-      "dependsOrder": "sequence",
-      "group": "build",
       "problemMatcher": [
         "$swiftc"
       ]
     },
     {
-      "label": "Silo: Test iOS",
+      "label": "Auger: Test tvOS",
       "type": "shell",
       "command": "xcodebuild",
       "args": [
         "test",
         "-project",
-        "Silo.xcodeproj",
+        "Auger.xcodeproj",
         "-scheme",
-        "Silo",
+        "Auger",
         "-destination",
-        "${input:iosTestDestination}",
+        "${input:tvosTestDestination}",
         "-derivedDataPath",
         ".deriveddata",
         "CODE_SIGN_IDENTITY=-",
@@ -117,7 +63,7 @@
       "options": {
         "cwd": "${workspaceFolder}/iosApp"
       },
-      "dependsOn": "Silo: Generate Xcode project",
+      "dependsOn": "Auger: Generate Xcode project",
       "dependsOrder": "sequence",
       "group": {
         "kind": "test",
@@ -130,10 +76,10 @@
   ],
   "inputs": [
     {
-      "id": "iosTestDestination",
+      "id": "tvosTestDestination",
       "type": "promptString",
-      "description": "Installed iOS Simulator destination",
-      "default": "platform=iOS Simulator,name=iPhone 17 Pro"
+      "description": "Installed tvOS Simulator destination",
+      "default": "platform=tvOS Simulator,name=Apple TV 4K (3rd generation)"
     }
   ]
 }

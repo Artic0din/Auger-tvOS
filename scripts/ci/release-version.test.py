@@ -105,14 +105,14 @@ class BetaReleaseTest(unittest.TestCase):
 
 GENERATED = """## What's Changed
 ### 🚀 Features
-* feat(player): skip recaps automatically by @dev in https://github.com/Silo-Server/silo-apple/pull/764
+* feat(player): skip recaps automatically by @dev in https://github.com/Artic0din/Auger-tvOS/pull/764
 ### 🐛 Fixes
-* fix(home): reload Home when the app returns by @dev in https://github.com/Silo-Server/silo-apple/pull/760
+* fix(home): reload Home when the app returns by @dev in https://github.com/Artic0din/Auger-tvOS/pull/760
 ### Other changes
-* ci: cache packages by @dev in https://github.com/Silo-Server/silo-apple/pull/700
-* Fix: restore the Up Next row by @dev in https://github.com/Silo-Server/silo-apple/pull/701
+* ci: cache packages by @dev in https://github.com/Artic0din/Auger-tvOS/pull/700
+* Fix: restore the Up Next row by @dev in https://github.com/Artic0din/Auger-tvOS/pull/701
 
-**Full Changelog**: https://github.com/Silo-Server/silo-apple/compare/a...b
+**Full Changelog**: https://github.com/Artic0din/Auger-tvOS/compare/a...b
 """
 
 

@@ -41,7 +41,7 @@ class CollectionsViewModel {
     private(set) var groupSupport: CollectionGroupSupport = .checking
     private let api: SiloAPI
 
-    private static let logger = Logger(subsystem: "org.siloserver.silo", category: "collections")
+    private static let logger = Logger(subsystem: "com.artic0din.auger", category: "collections")
 
     init(api: SiloAPI = .shared) {
         self.api = api

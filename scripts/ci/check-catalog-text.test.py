@@ -83,7 +83,7 @@ class ScanSourceTests(unittest.TestCase):
             'Text(make!("x"))',
             'Text("\\(names.joined(separator: ", "))")',
             'Text(foo("bar"))',
-            'let queue = DispatchQueue(label: "org.siloserver.silo.loader")',
+            'let queue = DispatchQueue(label: "com.artic0din.auger.loader")',
             '@Parameter(title: "shell.searchIntent.term")',
             'PINKey(label: "delete.backward")',
             'DiagTrace.record(category: .player, message: "player presented")',

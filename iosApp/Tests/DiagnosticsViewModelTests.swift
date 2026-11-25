@@ -3,6 +3,26 @@ import XCTest
 
 @MainActor
 final class DiagnosticsViewModelTests: XCTestCase {
+    func testDefaultDestinationStoreRejectsSavedAndRequestedHostedSelection() throws {
+        let suiteName = "diagnostics-destination-default-self-hosted-\(UUID().uuidString)"
+        let suite = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        suite.removePersistentDomain(forName: suiteName)
+        addTeardownBlock { UserDefaults().removePersistentDomain(forName: suiteName) }
+
+        let defaults = SharedDefaults(suite: suite, standard: suite)
+        defaults.set(DiagnosticsDestinationChoice.hosted.rawValue, forKey: "diagnostics.destination.v1")
+
+        let store = DiagnosticsDestinationStore(defaults: defaults)
+        XCTAssertEqual(store.selectedDestination, .selfHosted)
+
+        store.select(.hosted)
+        XCTAssertEqual(store.selectedDestination, .selfHosted)
+        XCTAssertEqual(
+            defaults.string(forKey: "diagnostics.destination.v1"),
+            DiagnosticsDestinationChoice.selfHosted.rawValue
+        )
+    }
+
     func testEquivalentStatusRefreshesShareAnEpoch() {
         var epoch = DiagnosticsStatusRefreshEpoch()
 
@@ -23,7 +43,7 @@ final class DiagnosticsViewModelTests: XCTestCase {
         let suite = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         suite.removePersistentDomain(forName: suiteName)
         let defaults = SharedDefaults(suite: suite, standard: suite)
-        let destinationStore = DiagnosticsDestinationStore(defaults: defaults)
+        let destinationStore = DiagnosticsDestinationStore(defaults: defaults, allowsHostedDestination: true)
         destinationStore.select(.hosted)
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(
             "DiagnosticsViewModel-shared-destination-\(UUID().uuidString)",
@@ -57,7 +77,7 @@ final class DiagnosticsViewModelTests: XCTestCase {
         let suite = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         suite.removePersistentDomain(forName: suiteName)
         let defaults = SharedDefaults(suite: suite, standard: suite)
-        let destinationStore = DiagnosticsDestinationStore(defaults: defaults)
+        let destinationStore = DiagnosticsDestinationStore(defaults: defaults, allowsHostedDestination: true)
         destinationStore.select(.hosted)
         let consentStore = DiagnosticsConsentStore(
             defaults: defaults,

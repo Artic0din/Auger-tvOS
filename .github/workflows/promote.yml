@@ -1,9 +1,9 @@
 name: Promote to App Store
 
-# Turns a TestFlight build into a store release without rebuilding it: drafts
-# the GitHub release vX.Y.Z on the build's commit, with notes since the last
-# App Store release. Submitting the build for App Review happens in App Store
-# Connect. Publish the draft once Apple approves the version.
+# Turns a tvOS TestFlight build into a store release without rebuilding it:
+# drafts the GitHub release vX.Y.Z on the build's commit, with notes since the
+# last App Store release. Submitting the build for App Review happens in App
+# Store Connect. Publish the draft once Apple approves the version.
 # See docs/release/ci-release.md.
 
 on:
@@ -22,7 +22,7 @@ jobs:
     name: Promote ${{ inputs.tag }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write # draft the release
+      contents: write
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # all tags
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Draft the GitHub release
@@ -40,10 +40,8 @@ jobs:
           version="$(sed -n 's/^version=//p' build.txt)"
           build="$(sed -n 's/^build=//p' build.txt)"
           release_tag="$(sed -n 's/^release_tag=//p' build.txt)"
-          # Promote only a build that reached tvOS testers. Builds from before
-          # this fork went tvOS-only also list iOS and macOS.
           if [[ "$(gh release view "$BETA_TAG" --json isPrerelease --jq .isPrerelease 2>/dev/null)" != "true" ]] ||
-             ! gh release view "$BETA_TAG" --json body --jq .body | grep -Eq '^TestFlight: distributed .* on (iOS, |iOS and )?tvOS(, and macOS)?\.$'; then
+             ! gh release view "$BETA_TAG" --json body --jq .body | grep -Eq '^TestFlight: distributed .* on tvOS\.$'; then
             echo "::error::$BETA_TAG didn't reach TestFlight testers on tvOS, so it can't be promoted."
             exit 1
           fi
@@ -52,12 +50,9 @@ jobs:
             exit 1
           fi
           commit="$(gh api "repos/$GH_REPO/commits/$BETA_TAG" --jq .sha)"
-          # Notes cover everything since the previous App Store release. The
-          # first App Store release has none to start from, so its notes are
-          # written by hand.
           previous="$(python3 scripts/ci/release-version.py previous-release "$release_tag" | sed -n 's/^previous_release=//p')"
           {
-            echo "Silo $version, build $build: the TestFlight build $BETA_TAG."
+            echo "Auger $version, build $build: the TestFlight build $BETA_TAG."
             echo
             if [[ -n "$previous" ]]; then
               gh api "repos/$GH_REPO/releases/generate-notes" \
@@ -70,7 +65,7 @@ jobs:
             echo "The source archive this build links to is on the $BETA_TAG release."
           } > notes.md
           gh release create "$release_tag" --draft --target "$commit" \
-            --title "Silo $version" --notes-file notes.md
+            --title "Auger $version" --notes-file notes.md
           {
             echo "Drafted $release_tag."
             echo
